@@ -5,5 +5,5 @@
 1. Vampire survivors -like game
     1. Location: space
     2. Enemies: planets, asteroids, stars
-2. Mini metro, Mini motorways anogues
+2. Mini metro, Mini motorways analogues
 3. TODO
