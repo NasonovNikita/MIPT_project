@@ -19,6 +19,10 @@ namespace game {
 
         /// Angle in degrees from 0 to 360
         float angle;
+
+        Vector2 corner();
+
+        explicit operator Rectangle() const;
     };
 
     struct Collider final {
@@ -39,6 +43,7 @@ namespace game {
     class GameObject {
         static GameObject *allObjects;
 
+    protected:
         long id;
         Transform2D transform;
         /// Zero is drawn first. Others are drawn above by order
@@ -47,7 +52,6 @@ namespace game {
 
         GameObject* parent;
 
-    protected:
         GameObject();
     public:
         virtual ~GameObject();
@@ -71,6 +75,7 @@ namespace game {
         virtual void Update() {}
         /// Is invoked on start of object's life
         virtual void Start() {}
+        virtual void Draw();
 
         bool operator==(const GameObject &) const;
         bool operator!=(const GameObject &) const;
@@ -81,7 +86,7 @@ namespace game {
 
     class CollidingObject : GameObject {
     protected:
-        explicit CollidingObject(); // Creates it's rect collider based on transform
+        explicit CollidingObject(): collider(Rectangle(transform)) {}
     public:
         Collider collider;
     };
