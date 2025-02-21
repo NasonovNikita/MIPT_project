@@ -8,7 +8,7 @@
 
 ### Classes, Structs, Enums, and Other Types
 - `PascalCase`
-    - Member Variables: `m_camelCase`
+    - Member Variables: `camelCase`
     - Static Variables: `s_camelCase`
 
 ### Global Variables
@@ -35,3 +35,5 @@
 # Header File Rules
 
 - Put header files in `include` to a folder with the same name as the source file in `src`.
+- If the implementations are small (1-3 lines) and easy, keep them in header file.
+- Complex and big functions must be implemented in .cpp as usual.
