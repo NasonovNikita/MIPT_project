@@ -6,7 +6,7 @@
 
 #include <stdexcept>
 
-namespace game {
+namespace game::stats {
     Stat::Stat(const int value, const int border) {
         if (value < 0 || border < 0)
             throw std::invalid_argument("value must be non-negative");

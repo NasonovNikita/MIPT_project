@@ -5,11 +5,12 @@
 #include <algorithm>
 #include <ranges>
 #include <stdexcept>
+#include <unordered_map>
 #include <game/gameObjects.h>
 
 
 namespace game::game_objects {
-    int GenerateId() {
+    int generateId() {
         int id = GetRandomValue(0, std::numeric_limits<int>::max());
         while (GameObject::s_existing_ids.contains(id))
             id = GetRandomValue(0, std::numeric_limits<int>::max());
@@ -17,22 +18,23 @@ namespace game::game_objects {
         return id;
     }
 
+    std::unordered_set<int> GameObject::s_existing_ids;
+    std::list<GameObject*> GameObject::s_allObjects;
 
-    GameObject::GameObject(const Transform2D &tr): transform_(tr) {
+    GameObject::GameObject(const components::Transform2D &tr): transform_(tr) {
         if (s_existing_ids.size() >= std::numeric_limits<int>::max() - 1)
             throw std::overflow_error("Too many gameobjects");
 
-        id_ = GenerateId();
+        id_ = generateId();
 
         s_existing_ids.insert(id_);
         s_allObjects.push_back(this);
     }
 
     GameObject::GameObject(const GameObject& other):
-    id_(GenerateId()),
+    id_(generateId()),
     transform_(other.transform_),
-    worldLayer_(other.worldLayer_),
-    children_(other.children_) {}
+    worldLayer_(other.worldLayer_) {}
 
     GameObject::~GameObject() {
         s_existing_ids.erase(id_);
@@ -48,20 +50,34 @@ namespace game::game_objects {
         return copiedGameObject;
     }
 
-    bool ColliderRect::checkCollision(Collider &other) {
-        // TODO by maks
+    void Unit::die() {
+        setActive(false);
+        delete this;
     }
 
-    Vector2 ColliderRect::getCollisionNormal(Collider &other) {
-        // TODO by maks
+    void Unit::takeDamage(const int value) {
+        hp_.ChangeValue(-value);
+
+        if (hp_.getValue() == 0) {
+            die();
+        }
     }
 
-    void Asteroid::Draw() {
-
+    void Unit::forceDie() {
+        die();
     }
 
-    void Player::Draw() {
-
+    void Asteroid::draw() {
+        // TODO Asteroid::Draw by Maks
+        // Just a circle will be fine for now
+        // Hint: size of transform can be used as a diameter
     }
 
+    void Player::draw() {
+        // TODO Player::Draw by Maks
+        // A narrow triangle pointing to current
+        // pointing position (rotation in transform)
+    }
+
+    Player *Player::s_instance;
 } // game

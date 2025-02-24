@@ -3,7 +3,11 @@ project(game)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(game src/main.cpp)
+add_executable(game
+        src/components.cpp
+        src/game/gameObjects.cpp
+        src/game/stats.cpp
+        src/main.cpp)
 include_directories(include)
 
 add_subdirectory(libs)
