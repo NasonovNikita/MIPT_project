@@ -2,63 +2,66 @@
 // Created by nosokvkokose on 21.02.25.
 //
 
-#include "game/gameObjects.h"
+#include <algorithm>
+#include <ranges>
+#include <stdexcept>
+#include <game/gameObjects.h>
 
-namespace game {
-    Vector2 Transform2D::corner() {
+
+namespace game::game_objects {
+    int GenerateId() {
+        int id = GetRandomValue(0, std::numeric_limits<int>::max());
+        while (GameObject::s_existing_ids.contains(id))
+            id = GetRandomValue(0, std::numeric_limits<int>::max());
+
+        return id;
     }
 
-    Transform2D::operator Rectangle() const {
+
+    GameObject::GameObject(const Transform2D &tr): transform_(tr) {
+        if (s_existing_ids.size() >= std::numeric_limits<int>::max() - 1)
+            throw std::overflow_error("Too many gameobjects");
+
+        id_ = GenerateId();
+
+        s_existing_ids.insert(id_);
+        s_allObjects.push_back(this);
     }
 
-    Collider::Collider(Shape shape, Vector2 *points) {
-    }
-
-    Collider::Collider(Rectangle rect) {
-    }
-
-    Collider::~Collider() {
-    }
-
-    bool Collider::CheckCollision(Collider &other) {
-    }
-
-    Vector2 Collider::GetCollisionNormal(Collider &other) {
-    }
-
-    GameObject::GameObject() {
-    }
+    GameObject::GameObject(const GameObject& other):
+    id_(GenerateId()),
+    transform_(other.transform_),
+    worldLayer_(other.worldLayer_),
+    children_(other.children_) {}
 
     GameObject::~GameObject() {
+        s_existing_ids.erase(id_);
+        s_allObjects.remove(this);
     }
 
-    bool GameObject::IsActive() const {
+    GameObject* GameObject::instantiate(GameObject *gameObject) {
+        const auto copiedGameObject = new GameObject(*gameObject);
+        copiedGameObject->id_ = GetRandomValue(0, std::numeric_limits<int>::max());
+        while (s_existing_ids.contains(copiedGameObject->id_))
+            copiedGameObject->id_ = GetRandomValue(0, std::numeric_limits<int>::max());
+
+        return copiedGameObject;
     }
 
-    GameObject * GameObject::GetParent() const {
+    bool ColliderRect::checkCollision(Collider &other) {
+        // TODO by maks
     }
 
-    Transform2D GameObject::GetTransform() const {
+    Vector2 ColliderRect::getCollisionNormal(Collider &other) {
+        // TODO by maks
     }
 
-    void GameObject::Destroy() {
+    void Asteroid::Draw() {
+
     }
 
-    void GameObject::Instantiate(GameObject gameObject) {
+    void Player::Draw() {
+
     }
 
-    void GameObject::Draw() {
-    }
-
-    bool GameObject::operator==(const GameObject &) const {
-    }
-
-    bool GameObject::operator!=(const GameObject &) const {
-    }
-
-    Asteroid::Asteroid() {
-    }
-
-    Asteroid::~Asteroid() {
-    }
 } // game

@@ -5,14 +5,18 @@
 #ifndef GAMEOBJECTS_H
 #define GAMEOBJECTS_H
 
+#include <list>
 #include <raylib.h>
-#include <game/shapes.h>
+#include <raymath.h>
+#include <unordered_set>
+#include <vector>
+#include <game/stats.h>
 
-#include "stats.h"
 
-namespace game {
+namespace game::game_objects {
     /// Info about position and sizes
     struct Transform2D final {
+        /// Centertr
         Vector2 position;
         Vector2 size;
         Vector2 scale;
@@ -20,92 +24,148 @@ namespace game {
         /// Angle in degrees from 0 to 360
         float angle;
 
-        Vector2 corner();
+        [[nodiscard]] Vector2 scaledSize() const { return size * scale; }
 
-        explicit operator Rectangle() const;
+        [[nodiscard]] Vector2 corner() const { return position - scaledSize() / 2; }
+
+        explicit operator Rectangle() const {
+            return {corner().x, corner().y, scaledSize().x, scaledSize().y};
+        }
     };
 
-    struct Collider final {
-        Shape shape;
-        /// Points required to define the shape. E.g. 2 points for rect,
-        /// n points for poly
-        Vector2 *points;
 
-        Collider(Shape shape, Vector2 *points);
-        explicit Collider(Rectangle rect);
-        ~Collider();
+    struct Collider {
+        virtual ~Collider() = 0;
 
-        bool CheckCollision(Collider &other);
+        virtual bool checkCollision(Collider &other) = 0;
+
         /// Vector showing direction of force for the collision
-        Vector2 GetCollisionNormal(Collider &other);
+        virtual Vector2 getCollisionNormal(Collider &other) = 0;
     };
+
+    struct ColliderRect final : Collider {
+        // ReSharper disable once CppDFANotInitializedField
+        Rectangle rect_;
+
+        bool checkCollision(Collider &other) override;
+
+        Vector2 getCollisionNormal(Collider &other) override;
+
+        explicit ColliderRect(const Rectangle rect): rect_(rect) {}
+        ColliderRect(const Vector2 corner, const Vector2 size):
+        rect_(corner.x, corner.y, size.x, size.y) {}
+
+        ~ColliderRect() override = default;
+    };
+
+    class DrawnObject {
+        public:
+        virtual ~DrawnObject() = default;
+        virtual void Draw() = 0;
+    };
+
 
     class GameObject {
-        static GameObject *allObjects;
+        friend int GenerateId();
+        static std::unordered_set<int> s_existing_ids;
+        static std::list<GameObject*> s_allObjects;
 
     protected:
-        long id;
-        Transform2D transform;
+        int id_;
+        Transform2D transform_;
         /// Zero is drawn first. Others are drawn above by order
-        int worldLayer;
-        bool isActive;
+        int worldLayer_ = 0;
+        bool isActive_ = true;
 
-        GameObject* parent;
+        GameObject *parent_ = nullptr;
+        std::vector<GameObject> children_ = {};
 
-        GameObject();
+        explicit GameObject(const Transform2D &tr);
+        GameObject(const GameObject& other);
+
     public:
         virtual ~GameObject();
 
-        [[nodiscard]] bool IsActive() const;
-        [[nodiscard]] GameObject* GetParent() const;
-        [[nodiscard]] Transform2D GetTransform() const;
+        [[nodiscard]] bool isActive() const { return isActive_; }
 
-        void SetActive(const bool active) {
-            isActive = active;
-            // Possible further event handlings
-        }
+        [[nodiscard]] GameObject *getParent() const { return parent_; }
 
-        void SetParent(GameObject *parent) { this->parent = parent; }
+        [[nodiscard]] Transform2D getTransform() const { return transform_; }
 
-        void Destroy();
+        void setActive(const bool active) { isActive_ = active; }
+
+        void setParent(GameObject *parent) { parent_ = parent; }
 
         /// Copy an instance of an object
-        void Instantiate(GameObject gameObject);
-        /// Is invoked every frame
-        virtual void Update() {}
-        /// Is invoked on start of object's life
-        virtual void Start() {}
-        virtual void Draw();
+        virtual GameObject* instantiate(GameObject *gameObject);
 
-        bool operator==(const GameObject &) const;
-        bool operator!=(const GameObject &) const;
+        /// Is invoked every frame
+        virtual void update() {
+        }
+
+        /// Is invoked on start of object's life
+        virtual void start() {
+        }
+
+        bool operator==(const GameObject &other) const { return id_ == other.id_; }
+
+        bool operator!=(const GameObject &other) const { return id_ != other.id_; }
 
         /// IsActive
-        explicit operator bool() const { return isActive; }
+        explicit operator bool() const { return isActive_; }
     };
+
 
     class CollidingObject : GameObject {
     protected:
-        explicit CollidingObject(): collider(Rectangle(transform)) {}
+        explicit CollidingObject(const Transform2D &tr):
+        GameObject(tr), collider(new ColliderRect(Rectangle(transform_))) {}
+
     public:
-        Collider collider;
+        Collider *collider;
     };
 
-    class Unit : CollidingObject {
-        Stat hp;
+    class Unit : CollidingObject, DrawnObject {
+        stats::Stat hp_;
+    protected:
+        float maxSpeed_;
+        float currentSpeed_ = 0;
+
+        float acceleration_;
+    public:
+        explicit Unit(const Transform2D &tr, const stats::Stat hp,
+            const float maxSpeed, const float acceleration):
+        CollidingObject(tr), hp_(hp), maxSpeed_(maxSpeed), acceleration_(acceleration) {}
     };
+
 
     class Asteroid final : Unit {
     public:
-        Asteroid();
+        Asteroid(const Transform2D &tr, const stats::Stat hp, const float maxSpeed):
+        Unit(tr, hp, maxSpeed, 0) { currentSpeed_ = maxSpeed; }
+
         ~Asteroid() override;
+
+        void Draw() override;
     };
 
-    class Player final : Unit {
-    public:
-        static Player* instance;
 
-        static Player* GetInstance() { return instance; }
+    class Player final : Unit {
+        float maxRotationSpeed_;
+        float currentRotationSpeed_ = 0;
+        float rotationAcceleration_;
+    public:
+        static Player *s_instance;
+
+        static Player *getInstance() { return s_instance; }
+
+        explicit Player(const Transform2D &tr, const stats::Stat hp, const float maxSpeed,
+                        const float acceleration, const float maxRotationSpeed,
+                        const float rotationAcceleration):
+        Unit(tr, hp, maxSpeed, acceleration),
+        maxRotationSpeed_(maxRotationSpeed), rotationAcceleration_(rotationAcceleration) {}
+
+        void Draw() override;
     };
 } // game
 

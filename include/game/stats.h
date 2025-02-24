@@ -5,7 +5,7 @@
 #ifndef STATS_H
 #define STATS_H
 
-namespace game {
+namespace game::stats {
     class Stat {
         int value;
         int border;

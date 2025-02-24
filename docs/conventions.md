@@ -6,10 +6,15 @@
 ### Functions
 - `camelCase`
 
-### Classes, Structs, Enums, and Other Types
+### Classes, Structs, and Other Types
 - `PascalCase`
-    - Member Variables: `camelCase`
+    - private & protected Member Variables: `camelCase_`
+    - public Members: `camelCase`
     - Static Variables: `s_camelCase`
+
+### Enums
+- `PascelCase`
+- Values - `ALL_CAPS_WITH_UNDERSCORES`
 
 ### Global Variables
 - `g_camelCase`
