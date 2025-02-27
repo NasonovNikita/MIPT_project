@@ -6,6 +6,18 @@
 #include <stdexcept>
 
 namespace components {
+    Transform2D::Transform2D(const float x, const float y, const float width,
+                             const float height, const float angle):
+    center({x, y}), size({width, height}), angle(angle) {}
+
+    Transform2D::Transform2D(const Vector2 center, const Vector2 size, const float angle):
+    center(center), size(size), angle(angle) {}
+
+    void ColliderRect::setCenter(const Vector2 center) {
+        rect.x = center.x + rect.width / 2;
+        rect.y = center.y + rect.height / 2;
+    }
+
     bool ColliderRect::checkCollision(Collider &other) {
         // TODO checkCollision_rect by maks
         // Maybe can be googled?
@@ -35,14 +47,14 @@ namespace components {
         */
     }
 
-    ColliderCircle::ColliderCircle(const Transform2D &tr): radius(0), center(tr.center) { // Set readius(0) for Clang-Tidy to shut up about non itialized member
+    ColliderCircle::ColliderCircle(const Transform2D &tr): radius_(0), center(tr.center) { // Set readius(0) for Clang-Tidy to shut up about non itialized member
         setRadius(tr);
     }
 
     void ColliderCircle::setRadius(const float radius) {
         if (radius <= 0)
             throw std::invalid_argument("Radius must be positive");
-        this->radius = radius;
+        this->radius_ = radius;
     }
 
     void ColliderCircle::setRadius(const Transform2D &tr) {
@@ -51,6 +63,20 @@ namespace components {
         if (tr.size.x == 0) {
             throw std::invalid_argument("Tried creating circle with zero radius");
         }
-        radius = tr.size.x / 2;
+        radius_ = tr.size.x / 2;
+    }
+
+    bool ColliderPoly::checkCollision(Collider &other) {
+    }
+
+    void ColliderPoly::setCenter(const Vector2 center) {
+        for (auto vertex : vertices_) {
+            vertex += center - center_;
+        }
+
+        center_ = center;
+    }
+
+    Vector2 ColliderPoly::getCollisionNormal(Collider &other) {
     }
 }

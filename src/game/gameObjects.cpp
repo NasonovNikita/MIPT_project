@@ -5,11 +5,12 @@
 #include <algorithm>
 #include <ranges>
 #include <stdexcept>
-#include <unordered_map>
 #include <game/gameObjects.h>
 
 
 namespace game::game_objects {
+#pragma region GameObject
+
     int generateId() {
         int id = GetRandomValue(0, std::numeric_limits<int>::max());
         while (GameObject::s_existing_ids.contains(id))
@@ -50,6 +51,8 @@ namespace game::game_objects {
         return copiedGameObject;
     }
 
+#pragma endregion
+
     void Unit::die() {
         setActive(false);
         delete this;
@@ -68,9 +71,12 @@ namespace game::game_objects {
     }
 
     void Asteroid::draw() {
-        // TODO Asteroid::Draw by Maks
-        // Just a circle will be fine for now
-        // Hint: size of transform can be used as a diameter
+        DrawCircle(static_cast<int>(transform_.center.x),
+                   static_cast<int>(transform_.center.y),
+                   transform_.scaledSize().x, GRAY);
+        DrawCircleLines(static_cast<int>(transform_.center.x),
+                   static_cast<int>(transform_.center.y),
+                   transform_.scaledSize().x, BLACK);
     }
 
     void Player::draw() {
@@ -80,4 +86,24 @@ namespace game::game_objects {
     }
 
     Player *Player::s_instance;
+
+    void Unit::update() {
+        const auto deltaTime = GetFrameTime();
+
+        currentSpeed_ += acceleration_ * deltaTime;
+        if (currentSpeed_ > maxSpeed_) {
+            currentSpeed_ = maxSpeed_;
+        }
+
+        direction = {cos(transform_.angle), -sin(transform_.angle)};
+        transform_.center += direction * currentSpeed_ * deltaTime;
+
+        collider->setCenter(transform_.center);
+    }
+
+    void Player::update() {
+        Unit::update();
+
+        // TODO controls
+    }
 } // game

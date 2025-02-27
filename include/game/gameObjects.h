@@ -30,9 +30,8 @@ namespace game::game_objects {
         std::vector<GameObject> children_ = {};
 
         explicit GameObject(const components::Transform2D &tr);
-        GameObject(const GameObject& other);
-
     public:
+        GameObject(const GameObject& other);
         virtual ~GameObject();
 
         [[nodiscard]] bool isActive() const { return isActive_; }
@@ -67,38 +66,52 @@ namespace game::game_objects {
 
     class CollidingObject : public GameObject {
     protected:
-        explicit CollidingObject(const components::Transform2D &tr):
-        GameObject(tr), collider(new components::ColliderRect(Rectangle(transform_))) {}
-
+        explicit CollidingObject(const components::Transform2D &tr, components::ColliderRect *collider=nullptr):
+        GameObject(tr), collider(collider) {
+            if (collider == nullptr)
+                this->collider = new components::ColliderRect(Rectangle(tr));
+        }
     public:
         components::Collider *collider;
     };
 
 
-    class Unit : CollidingObject, components::DrawnObject {
-        stats::Stat hp_;
+    class Unit : public CollidingObject, public components::DrawnObject {
+        stats::Stat hp_ {0};
     protected:
-        float maxSpeed_;
+        float maxSpeed_ = 0;
         float currentSpeed_ = 0;
 
-        float acceleration_;
+        float acceleration_ = 0;
+
+        Vector2 direction {1, 0};
 
         void die();
     public:
-        explicit Unit(const components::Transform2D &tr, const stats::Stat hp,
+        explicit Unit(const components::Transform2D &tr, const int hp,
             const float maxSpeed, const float acceleration):
         CollidingObject(tr), hp_(hp), maxSpeed_(maxSpeed), acceleration_(acceleration) {}
 
         void takeDamage(int value);
 
         void forceDie();
+
+        void update() override;
     };
 
 
     class Asteroid final : public Unit {
     public:
-        Asteroid(const components::Transform2D &tr, const stats::Stat hp, const float maxSpeed):
-        Unit(tr, hp, maxSpeed, 0) { currentSpeed_ = maxSpeed; }
+        Asteroid(const components::Transform2D &tr, const int hp, const float maxSpeed):
+        Unit(tr, hp, maxSpeed, 0) {
+            currentSpeed_ = maxSpeed;
+            collider = new components::ColliderCircle(tr);
+        }
+
+        void setCenter(const int x, const int y) {
+            transform_.center = Vector2(x, y);
+            collider->setCenter(Vector2(x, y));
+        }
 
         void draw() override;
     };
@@ -113,7 +126,7 @@ namespace game::game_objects {
 
         static Player *getInstance() { return s_instance; }
 
-        explicit Player(const components::Transform2D &tr, const stats::Stat hp,
+        explicit Player(const components::Transform2D &tr, const int hp,
             const float maxSpeed, const float acceleration,
             const float maxRotationSpeed,
             const float rotationAcceleration):
@@ -123,6 +136,7 @@ namespace game::game_objects {
         }
 
         void draw() override;
+        void update() override;
     };
 } // game
 
