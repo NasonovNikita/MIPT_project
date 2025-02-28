@@ -13,6 +13,8 @@ namespace components {
     Transform2D::Transform2D(const Vector2 center, const Vector2 size, const float angle):
     center(center), size(size), angle(angle) {}
 
+#pragma region Collider math
+
     // Helper function to check if the simplex contains the origin
     bool containsOrigin(std::vector<Vector2>& simplex, Vector2& direction) {
         if (simplex.size() == 2) {
@@ -59,10 +61,9 @@ namespace components {
         return false;
     }
 
-    bool Collider::checkCollision(Collider &other) {
-        if (!CheckCollisionRecs(getPrimitiveBox(), other.getPrimitiveBox())) {
+    bool Collider::checkCollision(Collider &other, std::vector<Vector2>& simplex) {
+        if (!CheckCollisionRecs(getCoveringBox(), other.getCoveringBox()))
             return false;
-        }
 
         // Initial direction
         Vector2 direction = {1, 0};
@@ -72,7 +73,7 @@ namespace components {
                                     Vector2Negate(direction));
 
         // Simplex (initially contains one point)
-        std::vector simplex = {support};
+        simplex.push_back(support);
 
         // New search direction
         direction = Vector2Negate(support);
@@ -98,6 +99,82 @@ namespace components {
         }
     }
 
+    bool Collider::checkCollision(Collider &other) {
+        if (CheckCollisionRecs(getInnerBox(), other.getInnerBox()))
+            return true;
+
+        std::vector<Vector2> simplex;
+        return checkCollision(other, simplex);
+    }
+
+
+    struct Face {
+        Vector2 normal;
+        float distance;
+        size_t index;
+    };
+
+    Face getClosestFace(const std::vector<Vector2>& polytope) {
+        Face closestFace{};
+        closestFace.distance = std::numeric_limits<float>::max();
+
+        for (size_t i = 0; i < polytope.size(); ++i) {
+            size_t j = (i + 1) % polytope.size();
+            Vector2 a = polytope[i];
+            Vector2 b = polytope[j];
+
+            const Vector2 edge = b - a;
+            const Vector2 normal = Vector2Normalize(Vector2{-edge.y, edge.x});
+            const float distance = Vector2DotProduct(normal, a);
+
+            if (distance < closestFace.distance) {
+                closestFace.distance = distance;
+                closestFace.normal = normal;
+                closestFace.index = j;
+            }
+        }
+
+        return closestFace;
+    }
+
+    Vector2 EPA(Collider& colliderA, Collider& colliderB, const std::vector<Vector2>& simplex) {
+        std::vector<Vector2> polytope = simplex;
+        float tolerance = 0.0001f;
+
+        while (true) {
+            // Find the closest face to the origin
+            Face face = getClosestFace(polytope);
+
+            // Get the support point in the direction of the face's normal
+            Vector2 support = colliderA.supportPoint(face.normal) - colliderB.
+                              supportPoint(Vector2Negate(face.normal));
+
+            // Check if the support point is close enough to the face
+            float distance = Vector2DotProduct(support, face.normal);
+            if (distance - face.distance < tolerance) {
+                // The closest face is the collision normal
+                return face.normal;
+            }
+
+            // Add the support point to the polytope
+            polytope.insert(polytope.begin() + face.index, support);
+        }
+    }
+
+    Vector2 Collider::getCollisionNormal(Collider &other) {
+        // Run GJK to get the initial simplex
+        std::vector<Vector2> simplex;
+        if (!checkCollision(other, simplex)) {
+            return {0, 0}; // No collision
+        }
+
+        // Run EPA to find the collision normal
+        return EPA(*this, other, simplex);
+    }
+
+#pragma endregion
+
+#pragma region ColliderRect
     void ColliderRect::setCenter(const Vector2 center) {
         rect.x = center.x + rect.width / 2;
         rect.y = center.y + rect.height / 2;
@@ -124,7 +201,9 @@ namespace components {
 
         return result;
     }
+#pragma endregion
 
+#pragma region ColliderCircle
     ColliderCircle::ColliderCircle(const Transform2D &tr):
     radius_(0), center(tr.center) { // Set readius(0) for Clang-Tidy to shut up about non itialized member
         setRadius(tr);
@@ -150,11 +229,20 @@ namespace components {
         return center + Vector2Scale(normalizedDir, radius_);
     }
 
-    Rectangle ColliderCircle::getPrimitiveBox() {
+    Rectangle ColliderCircle::getCoveringBox() {
         return Rectangle(center.x - radius_, center.y - radius_,
             2 * radius_, 2 * radius_);
     }
 
+    Rectangle ColliderCircle::getInnerBox() {
+        return Rectangle(center.x - radius_ / sqrt(2),
+                         center.y - radius_ / sqrt(2), sqrt(2) * radius_,
+                         sqrt(2) * radius_);
+    }
+
+#pragma endregion
+
+#pragma region ColliderPoly
     void ColliderPoly::setCenter(const Vector2 center) {
         for (auto vertex : vertices_) {
             vertex += center - center_;
@@ -176,7 +264,7 @@ namespace components {
         return farthestPoint;
     }
 
-    Rectangle ColliderPoly::getPrimitiveBox() {
+    Rectangle ColliderPoly::getCoveringBox() {
         float xMin = INFINITY,
         yMin = INFINITY, xMax = 0, yMax = 0;
 
@@ -189,4 +277,20 @@ namespace components {
 
         return Rectangle(xMin, yMin, xMax - xMin, yMax - yMin);
     }
+
+    Rectangle ColliderPoly::getInnerBox() {
+        float xMin = INFINITY,
+        yMin = INFINITY, xMax = 0, yMax = 0;
+
+        for (const auto&[x, y] : vertices_) {
+            xMax = std::max(xMax, x);
+            xMin = std::min(xMin, x);
+            yMax = std::max(yMax, y);
+            yMin = std::min(yMin, y);
+        }
+
+        return Rectangle(xMin + (xMax - xMin) / 4, yMin + (yMax - yMin) / 4,
+                         xMax - (xMax - xMin) / 4, yMax - (yMax - yMin) / 4);
+    }
+#pragma endregion
 }

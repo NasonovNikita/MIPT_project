@@ -33,15 +33,20 @@ namespace components {
 
 
     struct Collider {
-        virtual ~Collider() = default;
-
-        bool checkCollision(Collider &other);
-
-        virtual void setCenter(Vector2 center) = 0;
+        friend Vector2 EPA(Collider& colliderA, Collider& colliderB, const std::vector<Vector2>& simplex);
+    protected:
+        bool checkCollision(Collider &other, std::vector<Vector2>& simplex);
 
         virtual Vector2 supportPoint(Vector2 direction) = 0;
 
-        virtual Rectangle getPrimitiveBox() = 0;
+        virtual Rectangle getCoveringBox() = 0;
+        virtual Rectangle getInnerBox() = 0;
+    public:
+        bool checkCollision(Collider &other);
+        virtual ~Collider() = default;
+        Vector2 getCollisionNormal(Collider &other);
+
+        virtual void setCenter(Vector2 center) = 0;
     };
 
     struct ColliderRect final : Collider {
@@ -57,7 +62,8 @@ namespace components {
 
         Vector2 supportPoint(Vector2 direction) override;
 
-        Rectangle getPrimitiveBox() override { return rect; };
+        Rectangle getCoveringBox() override { return rect; };
+        Rectangle getInnerBox() override { return rect; };
     };
 
     struct ColliderCircle final : Collider {
@@ -77,7 +83,8 @@ namespace components {
 
         Vector2 supportPoint(Vector2 direction) override;
 
-        Rectangle getPrimitiveBox() override;
+        Rectangle getCoveringBox() override;
+        Rectangle getInnerBox() override;
     };
 
     struct ColliderPoly final : Collider {
@@ -91,7 +98,8 @@ namespace components {
 
         Vector2 supportPoint(Vector2 direction) override;
 
-        Rectangle getPrimitiveBox() override;
+        Rectangle getCoveringBox() override;
+        Rectangle getInnerBox() override;
     };
 
     class DrawnObject {

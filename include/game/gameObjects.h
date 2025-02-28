@@ -84,10 +84,11 @@ namespace game::game_objects {
 
         float acceleration_ = 0;
 
-        Vector2 direction {1, 0};
 
         void die();
     public:
+        Vector2 movingDirection {1, 0};
+
         explicit Unit(const components::Transform2D &tr, const int hp,
             const float maxSpeed, const float acceleration):
         CollidingObject(tr), hp_(hp), maxSpeed_(maxSpeed), acceleration_(acceleration) {}
@@ -95,6 +96,9 @@ namespace game::game_objects {
         void takeDamage(int value);
 
         void forceDie();
+
+        /// Change direction of movement as if it bounced from surface with given normal
+        void bounceByNormal(Vector2 normal);
 
         void update() override;
     };

@@ -15,9 +15,10 @@ int main() {
     for (int i = 0; i < 10; i++) {
         asteroids.emplace_back(
             components::Transform2D(GetRandomValue(100, 700),
-                                    GetRandomValue(100, 350), 45, 45,
-                                    GetRandomValue(0, 360)), 20,
+                                    GetRandomValue(100, 350), 45, 45), 20,
             GetRandomValue(-200, 200));
+        auto angle = GetRandomValue(-180, 180);
+        asteroids[i].movingDirection = Vector2(cos(angle), sin(angle));
     }
 
     while (!WindowShouldClose()) {
@@ -48,6 +49,7 @@ int main() {
                 asteroid.setCenter(tr.center.x, screenHeight);
             }
 
+
             for (auto & otherAsteroid : asteroids) {
                 if (otherAsteroid == asteroid || !otherAsteroid.isActive()) continue;
 
@@ -56,6 +58,7 @@ int main() {
                     otherAsteroid.setActive(false);
                 }
             }
+
         }
 
         EndDrawing();

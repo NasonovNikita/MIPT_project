@@ -69,6 +69,15 @@ namespace game::game_objects {
         die();
     }
 
+    void Unit::bounceByNormal(const Vector2 normal) {
+        auto mirrored = normal * Vector2DotProduct(
+                            movingDirection, Vector2Normalize(normal));
+
+        movingDirection += mirrored * 2;
+        movingDirection = Vector2Normalize(movingDirection); // For safety if precision is low
+    }
+
+
     void Asteroid::draw() {
         DrawCircle(static_cast<int>(transform_.center.x),
                    static_cast<int>(transform_.center.y),
@@ -94,8 +103,7 @@ namespace game::game_objects {
             currentSpeed_ = maxSpeed_;
         }
 
-        direction = {cos(transform_.angle), -sin(transform_.angle)};
-        transform_.center += direction * currentSpeed_ * deltaTime;
+        transform_.center += movingDirection * currentSpeed_ * deltaTime;
 
         collider->setCenter(transform_.center);
     }
