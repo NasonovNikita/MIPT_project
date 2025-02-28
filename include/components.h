@@ -35,28 +35,29 @@ namespace components {
     struct Collider {
         virtual ~Collider() = default;
 
-        virtual bool checkCollision(Collider &other) = 0;
+        bool checkCollision(Collider &other);
 
         virtual void setCenter(Vector2 center) = 0;
 
-        /// Vector showing direction of force for the collision
-        virtual Vector2 getCollisionNormal(Collider &other) = 0;
+        virtual Vector2 supportPoint(Vector2 direction) = 0;
+
+        virtual Rectangle getPrimitiveBox() = 0;
     };
 
     struct ColliderRect final : Collider {
     private:
         Rectangle rect;
     public:
-        bool checkCollision(Collider &other) override;
-
-        Vector2 getCollisionNormal(Collider &other) override;
-
         explicit ColliderRect(const Rectangle rect): rect(rect) {}
         ColliderRect(const Vector2 corner, const Vector2 size):
         rect(corner.x, corner.y, size.x, size.y) {}
 
         // Set center (used by collider as pivot)
         void setCenter(Vector2 center) override;
+
+        Vector2 supportPoint(Vector2 direction) override;
+
+        Rectangle getPrimitiveBox() override { return rect; };
     };
 
     struct ColliderCircle final : Collider {
@@ -64,10 +65,6 @@ namespace components {
         float radius_;
     public:
         Vector2 center;
-
-        bool checkCollision(Collider &other) override;
-
-        Vector2 getCollisionNormal(Collider &other) override;
 
         explicit ColliderCircle(const Transform2D &tr);
         ColliderCircle(const Vector2 center, const float radius):
@@ -77,6 +74,10 @@ namespace components {
         void setRadius(const Transform2D &tr);
 
         void setCenter(const Vector2 center) override { this->center = center; }
+
+        Vector2 supportPoint(Vector2 direction) override;
+
+        Rectangle getPrimitiveBox() override;
     };
 
     struct ColliderPoly final : Collider {
@@ -86,12 +87,11 @@ namespace components {
     public:
         ColliderPoly(const Vector2 center, std::vector<Vector2> vertices):
         vertices_(std::move(vertices)), center_{center} {}
-
-        bool checkCollision(Collider &other) override;
-
         void setCenter(Vector2 center) override;
 
-        Vector2 getCollisionNormal(Collider &other) override;
+        Vector2 supportPoint(Vector2 direction) override;
+
+        Rectangle getPrimitiveBox() override;
     };
 
     class DrawnObject {

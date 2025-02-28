@@ -15,7 +15,7 @@ int main() {
     for (int i = 0; i < 10; i++) {
         asteroids.emplace_back(
             components::Transform2D(GetRandomValue(100, 700),
-                                    GetRandomValue(100, 350), 30, 30,
+                                    GetRandomValue(100, 350), 45, 45,
                                     GetRandomValue(0, 360)), 20,
             GetRandomValue(-200, 200));
     }
@@ -26,8 +26,11 @@ int main() {
         }
 
         BeginDrawing();
+        ClearBackground(RAYWHITE);
 
         for (auto & asteroid : asteroids) {
+            if (!asteroid.isActive()) continue;
+
             asteroid.update();
             asteroid.draw();
 
@@ -44,9 +47,16 @@ int main() {
             if (tr.center.y < 0) {
                 asteroid.setCenter(tr.center.x, screenHeight);
             }
-        }
-        ClearBackground(RAYWHITE);
 
+            for (auto & otherAsteroid : asteroids) {
+                if (otherAsteroid == asteroid || !otherAsteroid.isActive()) continue;
+
+                if (asteroid.collider->checkCollision(*otherAsteroid.collider)) {
+                    asteroid.setActive(false);
+                    otherAsteroid.setActive(false);
+                }
+            }
+        }
 
         EndDrawing();
     }

@@ -55,7 +55,6 @@ namespace game::game_objects {
 
     void Unit::die() {
         setActive(false);
-        delete this;
     }
 
     void Unit::takeDamage(const int value) {
@@ -73,10 +72,10 @@ namespace game::game_objects {
     void Asteroid::draw() {
         DrawCircle(static_cast<int>(transform_.center.x),
                    static_cast<int>(transform_.center.y),
-                   transform_.scaledSize().x, GRAY);
+                   transform_.scaledSize().x / 2, GRAY);
         DrawCircleLines(static_cast<int>(transform_.center.x),
                    static_cast<int>(transform_.center.y),
-                   transform_.scaledSize().x, BLACK);
+                   transform_.scaledSize().x / 2, BLACK);
     }
 
     void Player::draw() {
