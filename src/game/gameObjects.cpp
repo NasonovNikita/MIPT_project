@@ -132,13 +132,35 @@ namespace game::game_objects {
                    transform_.scaledSize().x / 2, BLACK);
     }
 
+    Player *Player::s_instance;
+
+    Player::Player(const components::Transform2D &tr, const int hp, const float maxSpeed,
+        const float maxRotationSpeed): Unit(tr, hp, maxSpeed),
+    maxRotationSpeed_(maxRotationSpeed) {}
+
     void Player::draw() {
         // TODO Player::Draw by Maks
         // A narrow triangle pointing to current
         // pointing position (rotation in transform)
     }
 
-    Player *Player::s_instance;
+    void Player::physUpdate(float deltaTime) {
+        Unit::physUpdate(deltaTime);
+
+        currentRotationSpeed_ += acceleration_ * deltaTime;
+        if (currentRotationSpeed_ > maxRotationSpeed_) {
+            currentRotationSpeed_ = maxRotationSpeed_;
+        }
+        if (-currentRotationSpeed_ > maxRotationSpeed_) {
+            currentRotationSpeed_ = -maxRotationSpeed_;
+        }
+
+        angle_ += currentRotationSpeed_ * deltaTime;
+        if (angle_ > 180) angle_ -= 180;
+        if (angle_ < -180) angle_ += 180;
+
+        transform_.angle = angle_;
+    }
 
     void Player::logicUpdate() {
         // TODO controls

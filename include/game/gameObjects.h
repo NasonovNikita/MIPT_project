@@ -97,8 +97,8 @@ namespace game::game_objects {
         Vector2 movingDirection {1, 0};
 
         explicit Unit(const components::Transform2D &tr, const int hp,
-            const float maxSpeed, const float acceleration):
-        CollidingObject(tr), hp_(hp), maxSpeed_(maxSpeed), acceleration_(acceleration) {}
+            const float maxSpeed):
+        CollidingObject(tr), hp_(hp), maxSpeed_(maxSpeed) {}
 
         void takeDamage(int value);
 
@@ -116,7 +116,7 @@ namespace game::game_objects {
     class Asteroid final : public Unit {
     public:
         Asteroid(const components::Transform2D &tr, const int hp, const float maxSpeed, const float currentSpeed=-1):
-        Unit(tr, hp, maxSpeed, 0) {
+        Unit(tr, hp, maxSpeed) {
             if (abs(currentSpeed + 1) < 0.01f)
                 currentSpeed_ = maxSpeed;
             else currentSpeed_ = currentSpeed;
@@ -134,24 +134,21 @@ namespace game::game_objects {
 
 
     class Player final : public Unit {
+        float angle_ = 0;
         float maxRotationSpeed_;
         float currentRotationSpeed_ = 0;
-        float rotationAcceleration_;
+        float rotationAcceleration_ = 0;
     public:
         static Player *s_instance;
 
         static Player *getInstance() { return s_instance; }
 
-        explicit Player(const components::Transform2D &tr, const int hp,
-            const float maxSpeed, const float acceleration,
-            const float maxRotationSpeed,
-            const float rotationAcceleration):
-        Unit(tr, hp, maxSpeed, acceleration),
-        maxRotationSpeed_(maxRotationSpeed), rotationAcceleration_(rotationAcceleration) {
-            s_instance = this;
-        }
+        explicit Player(const components::Transform2D &tr, int hp,
+                        float maxSpeed,
+                        float maxRotationSpeed);
 
         void draw() override;
+        void physUpdate(float deltaTime) override;
         void logicUpdate() override;
     };
 } // game

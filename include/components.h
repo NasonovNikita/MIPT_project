@@ -47,6 +47,7 @@ namespace components {
         Vector2 getCollisionNormal(Collider &other);
 
         virtual void setCenter(Vector2 center) = 0;
+        virtual void rotate(float angle) = 0;
     };
 
     struct ColliderRect final : Collider {
@@ -63,7 +64,9 @@ namespace components {
         Vector2 supportPoint(Vector2 direction) override;
 
         Rectangle getCoveringBox() override { return rect; };
-        Rectangle getInnerBox() override { return rect; };
+        Rectangle getInnerBox() override { return rect; }
+
+        void rotate(float angle) override;;
     };
 
     struct ColliderCircle final : Collider {
@@ -85,6 +88,8 @@ namespace components {
 
         Rectangle getCoveringBox() override;
         Rectangle getInnerBox() override;
+
+        void rotate(float angle) override;
     };
 
     struct ColliderPoly final : Collider {
@@ -100,6 +105,8 @@ namespace components {
 
         Rectangle getCoveringBox() override;
         Rectangle getInnerBox() override;
+
+        void rotate(float angle) override;
     };
 
     class DrawnObject {
