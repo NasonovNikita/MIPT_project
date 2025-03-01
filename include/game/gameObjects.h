@@ -47,8 +47,12 @@ namespace game::game_objects {
         /// Copy an instance of an object
         virtual GameObject* instantiate(GameObject *gameObject);
 
-        /// Is invoked every frame
-        virtual void update() {
+        /// Is invoked every deltaTimePhys or similar (physics)
+        virtual void physUpdate(float deltaTime) {
+        }
+
+        /// Called once per frame
+        virtual void logicUpdate() {
         }
 
         /// Is invoked on start of object's life
@@ -73,6 +77,9 @@ namespace game::game_objects {
         }
     public:
         components::Collider *collider;
+
+        void updateCollider() { collider->setCenter(transform_.center); }
+        void resolveCollision(CollidingObject &other);
     };
 
 
@@ -100,19 +107,24 @@ namespace game::game_objects {
         /// Change direction of movement as if it bounced from surface with given normal
         void bounceByNormal(Vector2 normal);
 
-        void update() override;
+        void bounceFromOther(Unit& other);
+
+        void physUpdate(float deltaTime) override;
     };
 
 
     class Asteroid final : public Unit {
     public:
-        Asteroid(const components::Transform2D &tr, const int hp, const float maxSpeed):
+        Asteroid(const components::Transform2D &tr, const int hp, const float maxSpeed, const float currentSpeed=-1):
         Unit(tr, hp, maxSpeed, 0) {
-            currentSpeed_ = maxSpeed;
+            if (abs(currentSpeed + 1) < 0.01f)
+                currentSpeed_ = maxSpeed;
+            else currentSpeed_ = currentSpeed;
+            
             collider = new components::ColliderCircle(tr);
         }
 
-        void setCenter(const int x, const int y) {
+        void setCenter(const float x, const float y) {
             transform_.center = Vector2(x, y);
             collider->setCenter(Vector2(x, y));
         }
@@ -140,7 +152,7 @@ namespace game::game_objects {
         }
 
         void draw() override;
-        void update() override;
+        void logicUpdate() override;
     };
 } // game
 

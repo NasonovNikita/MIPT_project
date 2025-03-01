@@ -3,6 +3,7 @@
 //
 
 #include <algorithm>
+#include <iostream>
 #include <ranges>
 #include <stdexcept>
 #include <game/gameObjects.h>
@@ -53,6 +54,18 @@ namespace game::game_objects {
 
 #pragma endregion
 
+    void CollidingObject::resolveCollision(CollidingObject &other) {
+        const auto collisionNormal = collider->
+                getCollisionNormal(*other.collider);
+        while (collider->checkCollision(*other.collider)) {
+            transform_.center -= collisionNormal * 0.1;
+            other.transform_.center += collisionNormal * 0.1;
+
+            updateCollider();
+            other.updateCollider();
+        }
+    }
+
     void Unit::die() {
         setActive(false);
     }
@@ -70,11 +83,43 @@ namespace game::game_objects {
     }
 
     void Unit::bounceByNormal(const Vector2 normal) {
-        auto mirrored = normal * Vector2DotProduct(
-                            movingDirection, Vector2Normalize(normal));
+        const auto mirrored = Vector2Normalize(normal) * Vector2DotProduct(
+                                  movingDirection, Vector2Normalize(normal));
 
-        movingDirection += mirrored * 2;
+        movingDirection -= mirrored * 2;
         movingDirection = Vector2Normalize(movingDirection); // For safety if precision is low
+    }
+
+    void Unit::bounceFromOther(Unit &other) {
+        const auto collisionNormal =
+            collider->getCollisionNormal(*other.collider);
+
+        const Vector2 relativeSpeed = movingDirection * currentSpeed_ - other.
+                                      movingDirection * other.currentSpeed_;
+
+        const Vector2 newSpeed = movingDirection * currentSpeed_ - collisionNormal *
+                                 Vector2DotProduct(collisionNormal, relativeSpeed);
+        movingDirection = Vector2Normalize(newSpeed);
+        currentSpeed_ = (newSpeed / movingDirection).x;   // x == y
+
+        const Vector2 otherNewSpeed = other.movingDirection * other.currentSpeed_ -
+                                      collisionNormal * Vector2DotProduct(
+                                          collisionNormal,
+                                          Vector2Negate(relativeSpeed));
+        other.movingDirection = Vector2Normalize(otherNewSpeed);
+        other.currentSpeed_ = (otherNewSpeed / other.movingDirection).x;
+    }
+
+
+    void Unit::physUpdate(const float deltaTime) {
+        currentSpeed_ += acceleration_ * deltaTime;
+        if (currentSpeed_ > maxSpeed_) {
+            currentSpeed_ = maxSpeed_;
+        }
+
+        transform_.center += movingDirection * currentSpeed_ * deltaTime;
+
+        updateCollider();
     }
 
 
@@ -95,22 +140,7 @@ namespace game::game_objects {
 
     Player *Player::s_instance;
 
-    void Unit::update() {
-        const auto deltaTime = GetFrameTime();
-
-        currentSpeed_ += acceleration_ * deltaTime;
-        if (currentSpeed_ > maxSpeed_) {
-            currentSpeed_ = maxSpeed_;
-        }
-
-        transform_.center += movingDirection * currentSpeed_ * deltaTime;
-
-        collider->setCenter(transform_.center);
-    }
-
-    void Player::update() {
-        Unit::update();
-
+    void Player::logicUpdate() {
         // TODO controls
     }
 } // game
