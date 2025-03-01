@@ -78,7 +78,9 @@ namespace game::game_objects {
     public:
         components::Collider *collider;
 
-        void updateCollider() { collider->setCenter(transform_.center); }
+        /// Update collider's center according to transform
+        void updateCollider() const { collider->setCenter(transform_.center); }
+        /// Object will change their position so that they don't collide
         void resolveCollision(CollidingObject &other);
     };
 
@@ -107,8 +109,10 @@ namespace game::game_objects {
         /// Change direction of movement as if it bounced from surface with given normal
         void bounceByNormal(Vector2 normal);
 
+        /// Two colliding objects will bounce physically
         void bounceFromOther(Unit& other);
 
+        /// Movement, collisions, etc.
         void physUpdate(float deltaTime) override;
     };
 
@@ -124,9 +128,10 @@ namespace game::game_objects {
             collider = new components::ColliderCircle(tr);
         }
 
+        /// Update center of asteroid (position, collider)
         void setCenter(const float x, const float y) {
             transform_.center = Vector2(x, y);
-            collider->setCenter(Vector2(x, y));
+            updateCollider();
         }
 
         void draw() override;
