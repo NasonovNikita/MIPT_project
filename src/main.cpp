@@ -1,9 +1,11 @@
 #include <game/gameObjects.h>
 
-constexpr int screenWidth = 800;
-constexpr int screenHeight = 800;
+static constexpr int screenWidth = 800;
+static constexpr int screenHeight = 800;
 constexpr float deltaTimePhys = 0.002f;
 
+std::vector<components::DrawnObject*> drawnObjects;
+std::vector<game::game_objects::CollidingObject*> collidingObjects;
 static std::vector<game::game_objects::Asteroid> asteroids;
 
 void updatePhysics() {
@@ -30,17 +32,13 @@ void updatePhysics() {
             asteroid.bounceByNormal({0, 1});
         }
         asteroid.updateCollider();
+    }
 
+    for (int i = 0; i < collidingObjects.size(); i++) {
+        for (int j = i; j < collidingObjects.size(); j++) {
+            if (!collidingObjects[i]->collider->checkCollision(*collidingObjects[j]->collider)) continue;
 
-        for (auto & otherAsteroid : asteroids) {
-            if (otherAsteroid == asteroid || !otherAsteroid.isActive()) continue;
-
-            if (asteroid.collider->checkCollision(*otherAsteroid.collider)) {
-                auto collisionNormal = asteroid.collider->getCollisionNormal(*otherAsteroid.collider);
-                asteroid.bounceFromOther(otherAsteroid, collisionNormal);
-
-                asteroid.resolveCollision(otherAsteroid);
-            }
+            collidingObjects[i]->onCollided(*collidingObjects[j]);
         }
     }
 }
@@ -54,6 +52,8 @@ int main() {
         asteroids.emplace_back(
             components::Transform2D(40.f * (i + 1), 40.f * (i + 1), 50, 50), 20,
             10000, GetRandomValue(100, 300));
+        drawnObjects.push_back(&asteroids[i]);
+        collidingObjects.push_back(&asteroids[i]);
 
         const auto angle = GetRandomValue(0, 360);
         asteroids[i].movingDirection = Vector2(static_cast<float>(cos(angle)),
@@ -76,8 +76,13 @@ int main() {
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        for (auto& asteroid : asteroids) {
-            asteroid.draw();
+        for (const auto& gameObject : game::game_objects::GameObject::s_allObjects) {
+            if (!gameObject->isActive()) continue;
+            gameObject->logicUpdate();
+        }
+
+        for (const auto& drawnObject : drawnObjects) {
+            drawnObject->draw();
         }
 
         EndDrawing();

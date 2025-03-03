@@ -102,7 +102,6 @@ namespace game::game_objects {
         other.currentSpeed_ = (otherNewSpeed / other.movingDirection).x;
     }
 
-
     void MovingObject::physUpdate(const float deltaTime) {
         currentSpeed_ += acceleration_ * deltaTime;
         if (currentSpeed_ > maxSpeed_) {
@@ -125,17 +124,10 @@ namespace game::game_objects {
         }
     }
 
-    void Unit::forceDie() {
-        die();
-    }
-
-    void Unit::physUpdate(const float deltaTime) {
-        MovingObject::physUpdate(deltaTime);
-        CollidingObject::physUpdate(deltaTime);
-    }
-
 
     void Asteroid::draw() {
+        if (!isActive()) return;
+
         DrawCircle(static_cast<int>(transform_.center.x),
                    static_cast<int>(transform_.center.y),
                    transform_.scaledSize().x / 2, GRAY);
@@ -144,15 +136,41 @@ namespace game::game_objects {
                    transform_.scaledSize().x / 2, BLACK);
     }
 
+    void Asteroid::onCollided(CollidingObject &other) {
+        if (other == *this) return;
+        auto& otherAsteroid = dynamic_cast<Asteroid&>(other);
+
+
+        if (!otherAsteroid) return;
+
+        const Vector2 collisionNormal = collider->getCollisionNormal(*other.collider);
+        bounceFromOther(otherAsteroid, collisionNormal);
+
+        resolveCollision(other);
+    }
+
+
+    Player *Player::s_instance;
+
     void Player::draw() {
         // TODO Player::Draw by Maks
         // A narrow triangle pointing to current
         // pointing position (rotation in transform)
     }
 
-    Player *Player::s_instance;
-
     void Player::logicUpdate() {
         // TODO controls
     }
+
+    void Bullet::draw() {
+    }
+
+    void Bullet::onCollided(CollidingObject &other) {
+        auto& asteroid = dynamic_cast<Asteroid&>(other);
+
+        if (!asteroid) return;
+        asteroid.takeDamage(10);
+        setActive(false);
+    }
+
 } // game

@@ -17,7 +17,6 @@ namespace game::game_objects {
     class GameObject {
         friend int generateId();
         static std::unordered_set<int> s_existing_ids;
-        static std::list<GameObject*> s_allObjects;
 
     protected:
         int id_;
@@ -31,6 +30,8 @@ namespace game::game_objects {
 
         explicit GameObject(const components::Transform2D &tr);
     public:
+        static std::list<GameObject*> s_allObjects;
+
         GameObject(const GameObject& other);
         virtual ~GameObject();
 
@@ -70,7 +71,7 @@ namespace game::game_objects {
 
     class CollidingObject : public virtual GameObject {
     protected:
-        explicit CollidingObject(components::ColliderRect *collider=nullptr):
+        explicit CollidingObject(components::Collider *collider=nullptr):
         collider(collider) {
             if (collider == nullptr)
                 this->collider = new components::ColliderRect(Rectangle());
@@ -83,6 +84,8 @@ namespace game::game_objects {
         void resolveCollision(CollidingObject &other);
 
         void physUpdate(float deltaTime) override;
+
+        void virtual onCollided(CollidingObject &other) {};
     };
 
     class MovingObject : public virtual GameObject {
@@ -120,9 +123,12 @@ namespace game::game_objects {
 
         void takeDamage(int value);
 
-        void forceDie();
+        void forceDie() { die(); }
 
-        void physUpdate(float deltaTime) override;
+        void physUpdate(const float deltaTime) override {
+            MovingObject::physUpdate(deltaTime);
+            CollidingObject::physUpdate(deltaTime);
+        }
     };
 
 
@@ -143,6 +149,8 @@ namespace game::game_objects {
         }
 
         void draw() override;
+
+        void onCollided(CollidingObject &other) override;
     };
 
 
@@ -166,6 +174,19 @@ namespace game::game_objects {
 
         void draw() override;
         void logicUpdate() override;
+    };
+
+    class Bullet final : public CollidingObject, public MovingObject, public components::DrawnObject{
+    public:
+        Bullet(const components::Transform2D &tr, const float maxSpeed):
+        GameObject(tr), CollidingObject(new components::ColliderCircle(tr)), MovingObject(maxSpeed) {}
+
+        void draw() override;
+        void physUpdate(const float deltaTime) override {
+            CollidingObject::physUpdate(deltaTime);
+            MovingObject::physUpdate(deltaTime);
+        }
+        void onCollided(CollidingObject &other) override;
     };
 } // game
 
