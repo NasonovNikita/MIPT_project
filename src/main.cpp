@@ -12,8 +12,6 @@ void updatePhysics() {
     for (auto & asteroid : asteroids) {
         if (!asteroid.isActive()) continue;
 
-        asteroid.physUpdate(deltaTimePhys);
-
         auto tr = asteroid.getTransform();
         if (tr.center.x + tr.scaledSize().x / 2 >= screenWidth) {
             tr.center.x = screenWidth - tr.scaledSize().x / 2;
@@ -32,6 +30,10 @@ void updatePhysics() {
             asteroid.bounceByNormal({0, 1});
         }
         asteroid.updateCollider();
+    }
+
+    for (const auto& gameObject : game::game_objects::GameObject::s_allObjects) {
+        gameObject->physUpdate(deltaTimePhys);
     }
 
     for (int i = 0; i < collidingObjects.size(); i++) {

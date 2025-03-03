@@ -21,8 +21,6 @@ namespace game::game_objects {
     protected:
         int id_;
         components::Transform2D transform_;
-        /// Zero is drawn first. Others are drawn above by order
-        int worldLayer_ = 0;
         bool isActive_ = true;
 
         GameObject *parent_ = nullptr;

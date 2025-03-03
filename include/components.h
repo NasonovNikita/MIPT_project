@@ -103,6 +103,8 @@ namespace components {
     };
 
     class DrawnObject {
+        /// Zero is drawn first. Others are drawn above by order
+        int worldLayer_ = 0;
     public:
         virtual ~DrawnObject() = default;
         virtual void draw() = 0;
