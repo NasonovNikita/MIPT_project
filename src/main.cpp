@@ -5,6 +5,7 @@ constexpr int screenHeight = 800;
 constexpr float deltaTimePhys = 0.002f;
 
 static std::vector<game::game_objects::Asteroid> asteroids;
+static game::game_objects::Player player(components::Transform2D(100, 400, 50, 50), 100, 100, 100);
 
 void updatePhysics() {
     for (auto & asteroid : asteroids) {
@@ -78,6 +79,8 @@ int main() {
         for (auto& asteroid : asteroids) {
             asteroid.draw();
         }
+
+        player.draw();
 
         EndDrawing();
     }
