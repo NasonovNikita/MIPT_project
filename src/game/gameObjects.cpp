@@ -134,11 +134,22 @@ namespace game::game_objects {
 
     Player *Player::s_instance;
 
-    Player::Player(const components::Transform2D &tr, const int hp, const float maxSpeed,
-        const float maxRotationSpeed): Unit(tr, hp, maxSpeed),
-    maxRotationSpeed_(maxRotationSpeed) {}
+    Player::Player(const components::Transform2D& tr, const int hp, const float maxSpeed,
+        const float maxRotationSpeed) : Unit(tr, hp, maxSpeed),
+        maxRotationSpeed_(maxRotationSpeed) {
 
-    void Player::draw() {
+        vertices = { tr.corner(), tr.corner() + Vector2 {0, tr.scaledSize().y}, tr.corner() + Vector2 {tr.scaledSize().x, tr.scaledSize().y / 2} };
+        collider = new components::ColliderPoly(tr.center, vertices);
+        
+    };
+
+    void Player::draw(){
+
+        DrawTriangle(vertices[0], vertices[1], vertices[2], GREEN);
+
+        DrawTriangleLines(vertices[0], vertices[1], vertices[2], BLUE);
+
+
         // TODO Player::Draw by Maks
         // A narrow triangle pointing to current
         // pointing position (rotation in transform)
@@ -155,14 +166,25 @@ namespace game::game_objects {
             currentRotationSpeed_ = -maxRotationSpeed_;
         }
 
-        angle_ += currentRotationSpeed_ * deltaTime;
+        auto dAngle_ = currentRotationSpeed_ * deltaTime;
+
+        angle_ += dAngle_;
         if (angle_ > 180) angle_ -= 180;
         if (angle_ < -180) angle_ += 180;
 
         transform_.angle = angle_;
+        vertices = { Vector2(vertices[0].x * cos(dAngle_) - vertices[0].y * sin(dAngle_), vertices[0].x * sin(dAngle_) + vertices[0].y * cos(dAngle_)),
+            Vector2 {vertices[1].x * cos(dAngle_) - vertices[1].y * sin(dAngle_), vertices[1].x * sin(dAngle_) + vertices[1].y * cos(dAngle_)},
+            Vector2{vertices[2].x * cos(dAngle_) - vertices[2].y * sin(dAngle_), vertices[2].x * sin(dAngle_) + vertices[2].y * cos(dAngle_)}};
+
+        collider->rotate(dAngle_);
     }
 
     void Player::logicUpdate() {
+        if (IsKeyDown(KEY_RIGHT)) transform_.center.x += 2.0f;
+        if (IsKeyDown(KEY_LEFT)) transform_.center.x -= 2.0f;
+        if (IsKeyDown(KEY_UP)) transform_.center.y -= 2.0f;
+        if (IsKeyDown(KEY_DOWN)) transform_.center.y += 2.0f;
         // TODO controls
     }
 } // game

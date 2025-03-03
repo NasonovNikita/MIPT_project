@@ -143,14 +143,15 @@ namespace game::game_objects {
         float maxRotationSpeed_;
         float currentRotationSpeed_ = 0;
         float rotationAcceleration_ = 0;
+        std::vector<Vector2> vertices = { Vector2 (0, 0), Vector2 (0, 0), Vector2 (0, 0) };
     public:
         static Player *s_instance;
 
         static Player *getInstance() { return s_instance; }
 
-        explicit Player(const components::Transform2D &tr, int hp,
-                        float maxSpeed,
-                        float maxRotationSpeed);
+        explicit Player(const components::Transform2D& tr, const int hp,
+            const float maxSpeed,
+            const float maxRotationSpeed);
 
         void draw() override;
         void physUpdate(float deltaTime) override;
