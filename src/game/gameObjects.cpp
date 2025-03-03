@@ -54,6 +54,12 @@ namespace game::game_objects {
 
 #pragma endregion
 
+
+    CollidingObject::~CollidingObject() {
+        GameObject::~GameObject();
+        delete collider;
+    }
+
     void CollidingObject::resolveCollision(CollidingObject &other) {
         const auto collisionNormal = collider->
                 getCollisionNormal(*other.collider);
@@ -66,23 +72,12 @@ namespace game::game_objects {
         }
     }
 
-    void Unit::die() {
-        setActive(false);
-    }
+    void CollidingObject::physUpdate(float deltaTime) { updateCollider(); }
 
-    void Unit::takeDamage(const int value) {
-        hp_.ChangeValue(-value);
 
-        if (hp_.getValue() == 0) {
-            die();
-        }
-    }
+    MovingObject::~MovingObject() { GameObject::~GameObject(); }
 
-    void Unit::forceDie() {
-        die();
-    }
-
-    void Unit::bounceByNormal(const Vector2 normal) {
+    void MovingObject::bounceByNormal(const Vector2 normal) {
         const auto mirrored = Vector2Normalize(normal) * Vector2DotProduct(
                                   movingDirection, Vector2Normalize(normal));
 
@@ -90,10 +85,7 @@ namespace game::game_objects {
         movingDirection = Vector2Normalize(movingDirection); // For safety if precision is low
     }
 
-    void Unit::bounceFromOther(Unit &other) {
-        const auto collisionNormal =
-            collider->getCollisionNormal(*other.collider);
-
+    void MovingObject::bounceFromOther(MovingObject &other, const Vector2 collisionNormal) {
         const Vector2 relativeSpeed = movingDirection * currentSpeed_ - other.
                                       movingDirection * other.currentSpeed_;
 
@@ -111,15 +103,35 @@ namespace game::game_objects {
     }
 
 
-    void Unit::physUpdate(const float deltaTime) {
+    void MovingObject::physUpdate(const float deltaTime) {
         currentSpeed_ += acceleration_ * deltaTime;
         if (currentSpeed_ > maxSpeed_) {
             currentSpeed_ = maxSpeed_;
         }
 
         transform_.center += movingDirection * currentSpeed_ * deltaTime;
+    }
 
-        updateCollider();
+
+    void Unit::die() {
+        setActive(false);
+    }
+
+    void Unit::takeDamage(const int value) {
+        hp_.ChangeValue(-value);
+
+        if (hp_.getValue() == 0) {
+            die();
+        }
+    }
+
+    void Unit::forceDie() {
+        die();
+    }
+
+    void Unit::physUpdate(const float deltaTime) {
+        MovingObject::physUpdate(deltaTime);
+        CollidingObject::physUpdate(deltaTime);
     }
 
 

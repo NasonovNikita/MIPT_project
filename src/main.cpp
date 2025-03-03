@@ -36,7 +36,8 @@ void updatePhysics() {
             if (otherAsteroid == asteroid || !otherAsteroid.isActive()) continue;
 
             if (asteroid.collider->checkCollision(*otherAsteroid.collider)) {
-                asteroid.bounceFromOther(otherAsteroid);
+                auto collisionNormal = asteroid.collider->getCollisionNormal(*otherAsteroid.collider);
+                asteroid.bounceFromOther(otherAsteroid, collisionNormal);
 
                 asteroid.resolveCollision(otherAsteroid);
             }

@@ -68,46 +68,59 @@ namespace game::game_objects {
     };
 
 
-    class CollidingObject : public GameObject {
+    class CollidingObject : public virtual GameObject {
     protected:
-        explicit CollidingObject(const components::Transform2D &tr, components::ColliderRect *collider=nullptr):
-        GameObject(tr), collider(collider) {
+        explicit CollidingObject(components::ColliderRect *collider=nullptr):
+        collider(collider) {
             if (collider == nullptr)
-                this->collider = new components::ColliderRect(Rectangle(tr));
+                this->collider = new components::ColliderRect(Rectangle());
         }
     public:
         components::Collider *collider;
+        ~CollidingObject() override = 0;
 
-        void updateCollider() { collider->setCenter(transform_.center); }
+        void updateCollider() const { collider->setCenter(transform_.center); }
         void resolveCollision(CollidingObject &other);
+
+        void physUpdate(float deltaTime) override;
     };
 
-
-    class Unit : public CollidingObject, public components::DrawnObject {
-        stats::Stat hp_ {0};
+    class MovingObject : public virtual GameObject {
     protected:
         float maxSpeed_ = 0;
         float currentSpeed_ = 0;
 
         float acceleration_ = 0;
 
-
-        void die();
     public:
         Vector2 movingDirection {1, 0};
-
-        explicit Unit(const components::Transform2D &tr, const int hp,
-            const float maxSpeed, const float acceleration):
-        CollidingObject(tr), hp_(hp), maxSpeed_(maxSpeed), acceleration_(acceleration) {}
-
-        void takeDamage(int value);
-
-        void forceDie();
+        ~MovingObject() override = 0;
 
         /// Change direction of movement as if it bounced from surface with given normal
         void bounceByNormal(Vector2 normal);
 
-        void bounceFromOther(Unit& other);
+
+        void bounceFromOther(MovingObject& other, Vector2 collisionNormal);
+
+        void physUpdate(float deltaTime) override;
+
+        explicit MovingObject(const float maxSpeed):
+        maxSpeed_(maxSpeed) {}
+    };
+
+    class Unit : public CollidingObject, public components::DrawnObject, public MovingObject {
+        stats::Stat hp_ {0};
+    protected:
+
+        void die();
+    public:
+
+        explicit Unit(const int hp, const float maxSpeed):
+        MovingObject(maxSpeed), hp_(hp) {}
+
+        void takeDamage(int value);
+
+        void forceDie();
 
         void physUpdate(float deltaTime) override;
     };
@@ -116,7 +129,7 @@ namespace game::game_objects {
     class Asteroid final : public Unit {
     public:
         Asteroid(const components::Transform2D &tr, const int hp, const float maxSpeed, const float currentSpeed=-1):
-        Unit(tr, hp, maxSpeed, 0) {
+        GameObject(tr), Unit(hp, maxSpeed) {
             if (abs(currentSpeed + 1) < 0.01f)
                 currentSpeed_ = maxSpeed;
             else currentSpeed_ = currentSpeed;
@@ -143,10 +156,10 @@ namespace game::game_objects {
         static Player *getInstance() { return s_instance; }
 
         explicit Player(const components::Transform2D &tr, const int hp,
-            const float maxSpeed, const float acceleration,
+            const float maxSpeed,
             const float maxRotationSpeed,
             const float rotationAcceleration):
-        Unit(tr, hp, maxSpeed, acceleration),
+        GameObject(tr), Unit(hp, maxSpeed),
         maxRotationSpeed_(maxRotationSpeed), rotationAcceleration_(rotationAcceleration) {
             s_instance = this;
         }
