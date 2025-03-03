@@ -35,8 +35,7 @@ namespace game::game_objects {
 
     GameObject::GameObject(const GameObject& other):
     id_(generateId()),
-    transform_(other.transform_),
-    worldLayer_(other.worldLayer_) {}
+    transform_(other.transform_) {}
 
     GameObject::~GameObject() {
         s_existing_ids.erase(id_);
