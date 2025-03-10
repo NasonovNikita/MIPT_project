@@ -40,7 +40,8 @@ void updatePhysics() {
         for (int j = i; j < collidingObjects.size(); j++) {
             if (!collidingObjects[i]->collider->checkCollision(*collidingObjects[j]->collider)) continue;
 
-            collidingObjects[i]->onCollided(*collidingObjects[j]);
+            collidingObjects[i]->onCollided(collidingObjects[j]);
+            collidingObjects[j]->onCollided(collidingObjects[i]);
         }
     }
 }
@@ -49,18 +50,19 @@ int main() {
     InitWindow(screenWidth, screenHeight, "test");
     SetTargetFPS(60);
 
-    asteroids.reserve(18);
-    for (int i = 0; i < 18; i++) {
-        asteroids.emplace_back(
-            components::Transform2D(40.f * (i + 1), 40.f * (i + 1), 50, 50), 20,
-            10000, GetRandomValue(100, 300));
-        drawnObjects.push_back(&asteroids[i]);
-        collidingObjects.push_back(&asteroids[i]);
+    asteroids.reserve(1);
+    asteroids.emplace_back(
+        components::Transform2D(200, 200, 50, 50),
+                                     10, 50, 0);
 
-        const auto angle = GetRandomValue(0, 360);
-        asteroids[i].movingDirection = Vector2(static_cast<float>(cos(angle)),
-                                               static_cast<float>(sin(angle)));
-    }
+    auto bullet = game::game_objects::Bullet(
+        components::Transform2D(100, 200, 10, 10), 50);
+
+
+    drawnObjects.push_back(&bullet);
+    drawnObjects.push_back(&asteroids[0]);
+    collidingObjects.push_back(&asteroids[0]);
+    collidingObjects.push_back(&bullet);
 
     float DT = 0;
 

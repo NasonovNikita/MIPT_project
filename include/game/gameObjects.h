@@ -83,7 +83,7 @@ namespace game::game_objects {
 
         void physUpdate(float deltaTime) override;
 
-        void virtual onCollided(CollidingObject &other) {};
+        void virtual onCollided(CollidingObject *other) {};
     };
 
     class MovingObject : public virtual GameObject {
@@ -148,7 +148,7 @@ namespace game::game_objects {
 
         void draw() override;
 
-        void onCollided(CollidingObject &other) override;
+        void onCollided(CollidingObject *other) override;
     };
 
 
@@ -177,14 +177,16 @@ namespace game::game_objects {
     class Bullet final : public CollidingObject, public MovingObject, public components::DrawnObject{
     public:
         Bullet(const components::Transform2D &tr, const float maxSpeed):
-        GameObject(tr), CollidingObject(new components::ColliderCircle(tr)), MovingObject(maxSpeed) {}
+        GameObject(tr), CollidingObject(new components::ColliderCircle(tr)), MovingObject(maxSpeed) {
+            currentSpeed_ = maxSpeed;
+        }
 
         void draw() override;
         void physUpdate(const float deltaTime) override {
             CollidingObject::physUpdate(deltaTime);
             MovingObject::physUpdate(deltaTime);
         }
-        void onCollided(CollidingObject &other) override;
+        void onCollided(CollidingObject *other) override;
     };
 } // game
 
