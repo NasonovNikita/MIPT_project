@@ -1,11 +1,11 @@
 #include <game/gameObjects.h>
 
-constexpr int screenWidth = 800;
-constexpr int screenHeight = 800;
+constexpr int screenWidth = 1040;
+constexpr int screenHeight = 1040;
 constexpr float deltaTimePhys = 0.002f;
 
 static std::vector<game::game_objects::Asteroid> asteroids;
-static game::game_objects::Player player(components::Transform2D(100, 400, 50, 50), 100, 100, 100, 10);
+static game::game_objects::Player player(components::Transform2D(100, 400, 50, 50), 100, 300, 10, 100);
 
 void updatePhysics() {
     for (auto & asteroid : asteroids) {
@@ -43,6 +43,9 @@ void updatePhysics() {
             }
         }
     }
+
+    player.physUpdate(deltaTimePhys);
+    player.updateCollider();
 }
 
 int main() {

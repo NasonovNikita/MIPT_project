@@ -113,8 +113,13 @@ namespace game::game_objects {
 
     void Unit::physUpdate(const float deltaTime) {
         currentSpeed_ += acceleration_ * deltaTime;
-        if (currentSpeed_ > maxSpeed_) {
-            currentSpeed_ = maxSpeed_;
+        if (std::abs(currentSpeed_) > maxSpeed_) {
+            if (currentSpeed_ > 0) {
+                currentSpeed_ = maxSpeed_;
+            }
+            else {
+                currentSpeed_ = -maxSpeed_;
+            }
         }
 
         transform_.center += movingDirection * currentSpeed_ * deltaTime;
@@ -134,11 +139,19 @@ namespace game::game_objects {
 
     Player *Player::s_instance;
 
+    std::vector<Vector2> Player::getVertices() {
+        return vertices;
+    }
+
     Player::Player(const components::Transform2D& tr, const int hp, const float maxSpeed,
-        const float maxRotationSpeed) : Unit(tr, hp, maxSpeed),
+        const float maxRotationSpeed, const float currentSpeed = -1) : Unit(tr, hp, maxSpeed),
         maxRotationSpeed_(maxRotationSpeed) {
 
-        vertices = { tr.corner(), tr.corner() + Vector2 {0, tr.scaledSize().y}, tr.corner() + Vector2 {tr.scaledSize().x, tr.scaledSize().y / 2} };
+        if (abs(currentSpeed + 1) < 0.01f)
+            currentSpeed_ = maxSpeed;
+        else currentSpeed_ = currentSpeed;
+
+        vertices = { tr.corner(), tr.corner() + Vector2 {0, tr.scaledSize().y}, tr.center + Vector2 {tr.scaledSize().x / 2, 0}};
         collider = new components::ColliderPoly(tr.center, vertices);
         
     };
@@ -158,13 +171,38 @@ namespace game::game_objects {
     void Player::physUpdate(float deltaTime) {
         Unit::physUpdate(deltaTime);
 
-        currentRotationSpeed_ += acceleration_ * deltaTime;
-        if (currentRotationSpeed_ > maxRotationSpeed_) {
-            currentRotationSpeed_ = maxRotationSpeed_;
+        if (!(IsKeyDown(KEY_UP) or IsKeyDown(KEY_DOWN))) {
+            if (std::abs(currentSpeed_) - 2 * std::abs(acceleration_) * deltaTime > 0) {
+                currentSpeed_ -= acceleration_ * deltaTime;
+            }
+            else {
+                currentSpeed_ = 0;
+            }
         }
-        if (-currentRotationSpeed_ > maxRotationSpeed_) {
-            currentRotationSpeed_ = -maxRotationSpeed_;
+
+        vertices[0] += movingDirection * currentSpeed_ * deltaTime;
+        vertices[1] += movingDirection * currentSpeed_ * deltaTime;
+        vertices[2] += movingDirection * currentSpeed_ * deltaTime;
+
+        if (IsKeyDown(KEY_RIGHT) or IsKeyDown(KEY_LEFT)) {
+            currentRotationSpeed_ += rotationAcceleration_ * deltaTime;
+            if (currentRotationSpeed_ > maxRotationSpeed_) {
+                currentRotationSpeed_ = maxRotationSpeed_;
+            }
+            if (-currentRotationSpeed_ > maxRotationSpeed_) {
+                currentRotationSpeed_ = -maxRotationSpeed_;
+            }
         }
+
+        else {
+            if (std::abs(currentRotationSpeed_) - std::abs(rotationAcceleration_) * deltaTime > 0) {
+                currentRotationSpeed_ -= rotationAcceleration_ * deltaTime; 
+            }
+            else {
+                currentRotationSpeed_ = 0;
+            }
+        }
+
 
         auto dAngle_ = currentRotationSpeed_ * deltaTime;
 
@@ -173,18 +211,38 @@ namespace game::game_objects {
         if (angle_ < -180) angle_ += 180;
 
         transform_.angle = angle_;
-        vertices = { Vector2(vertices[0].x * cos(dAngle_) - vertices[0].y * sin(dAngle_), vertices[0].x * sin(dAngle_) + vertices[0].y * cos(dAngle_)),
-            Vector2 {vertices[1].x * cos(dAngle_) - vertices[1].y * sin(dAngle_), vertices[1].x * sin(dAngle_) + vertices[1].y * cos(dAngle_)},
-            Vector2{vertices[2].x * cos(dAngle_) - vertices[2].y * sin(dAngle_), vertices[2].x * sin(dAngle_) + vertices[2].y * cos(dAngle_)}};
+
+        vertices = { transform_.center + Vector2Rotate(vertices[0] - transform_.center, dAngle_),
+                         transform_.center + Vector2Rotate(vertices[1] - transform_.center, dAngle_),
+                         transform_.center + Vector2Rotate(vertices[2] - transform_.center, dAngle_) };
+
+
 
         collider->rotate(dAngle_);
+
+
     }
 
     void Player::logicUpdate() {
-        if (IsKeyDown(KEY_RIGHT)) transform_.center.x += 2.0f;
-        if (IsKeyDown(KEY_LEFT)) transform_.center.x -= 2.0f;
-        if (IsKeyDown(KEY_UP)) transform_.center.y -= 2.0f;
-        if (IsKeyDown(KEY_DOWN)) transform_.center.y += 2.0f;
+
+        movingDirection = Vector2Normalize(vertices[2]- transform_.center);
+
+        if (IsKeyDown(KEY_UP)) {
+            acceleration_ = 100;
+        }
+
+        if (IsKeyDown(KEY_DOWN)) {
+            acceleration_ = -100;
+        };
+        
+        if (IsKeyDown(KEY_RIGHT)) {
+            rotationAcceleration_ = 10;
+        }
+
+        if (IsKeyDown(KEY_LEFT)) {
+            rotationAcceleration_ = -10;
+        }
+
         // TODO controls
     }
 } // game
