@@ -225,13 +225,14 @@ namespace game::game_objects {
 
     void Player::logicUpdate() {
 
-        movingDirection = Vector2Normalize(vertices[2]- transform_.center);
 
         if (IsKeyDown(KEY_UP)) {
+            movingDirection = Vector2Normalize(vertices[2] - transform_.center);
             acceleration_ = 100;
         }
 
         if (IsKeyDown(KEY_DOWN)) {
+            movingDirection = Vector2Normalize(vertices[2] - transform_.center);
             acceleration_ = -100;
         };
         
