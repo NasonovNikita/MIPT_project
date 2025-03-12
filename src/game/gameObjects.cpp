@@ -241,8 +241,6 @@ namespace game::game_objects {
         if (IsKeyDown(KEY_LEFT)) {
             rotationAcceleration_ = -10;
         }
-
-        // TODO controls
     }
 
     void Bullet::draw() {

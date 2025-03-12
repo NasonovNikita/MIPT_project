@@ -49,9 +49,6 @@ void updatePhysics() {
             collidingObjects[j]->onCollided(collidingObjects[i]);
         }
     }
-
-    player.physUpdate(deltaTimePhys);
-    player.updateCollider();
 }
 
 int main() {
@@ -69,8 +66,11 @@ int main() {
 
     drawnObjects.push_back(&bullet);
     drawnObjects.push_back(&asteroids[0]);
+    drawnObjects.push_back(&player);
+
     collidingObjects.push_back(&asteroids[0]);
     collidingObjects.push_back(&bullet);
+    collidingObjects.push_back(&player);
 
     float DT = 0;
 
