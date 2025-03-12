@@ -84,45 +84,37 @@ namespace game::game_objects {
 
     void Unit::bounceByNormal(const Vector2 normal) {
         const auto mirrored = Vector2Normalize(normal) * Vector2DotProduct(
-                                  movingDirection, Vector2Normalize(normal));
+                                  currentSpeed_, Vector2Normalize(normal));
 
-        movingDirection -= mirrored * 2;
-        movingDirection = Vector2Normalize(movingDirection); // For safety if precision is low
+        currentSpeed_ -= mirrored * 2;
     }
 
     void Unit::bounceFromOther(Unit &other) {
         const auto collisionNormal =
             collider->getCollisionNormal(*other.collider);
 
-        const Vector2 relativeSpeed = movingDirection * currentSpeed_ - other.
-                                      movingDirection * other.currentSpeed_;
+        const Vector2 relativeSpeed = currentSpeed_ - other.currentSpeed_;
 
-        const Vector2 newSpeed = movingDirection * currentSpeed_ - collisionNormal *
+        const Vector2 newSpeed = currentSpeed_ - collisionNormal *
                                  Vector2DotProduct(collisionNormal, relativeSpeed);
-        movingDirection = Vector2Normalize(newSpeed);
-        currentSpeed_ = (newSpeed / movingDirection).x;   // x == y
+        
+        currentSpeed_ = newSpeed;  // x == y
 
-        const Vector2 otherNewSpeed = other.movingDirection * other.currentSpeed_ -
+        const Vector2 otherNewSpeed = other.currentSpeed_ -
                                       collisionNormal * Vector2DotProduct(
                                           collisionNormal,
                                           Vector2Negate(relativeSpeed));
-        other.movingDirection = Vector2Normalize(otherNewSpeed);
-        other.currentSpeed_ = (otherNewSpeed / other.movingDirection).x;
+        other.currentSpeed_ = otherNewSpeed;
     }
 
 
     void Unit::physUpdate(const float deltaTime) {
-        currentSpeed_ += acceleration_ * deltaTime;
-        if (std::abs(currentSpeed_) > maxSpeed_) {
-            if (currentSpeed_ > 0) {
-                currentSpeed_ = maxSpeed_;
-            }
-            else {
-                currentSpeed_ = -maxSpeed_;
-            }
+        currentSpeed_ = currentSpeed_ + accelerationDirection * acceleration_ * deltaTime;
+        if (Vector2Length(currentSpeed_) > maxSpeed_) {
+            currentSpeed_ = Vector2Normalize(currentSpeed_) * maxSpeed_;
         }
 
-        transform_.center += movingDirection * currentSpeed_ * deltaTime;
+        transform_.center += currentSpeed_ * deltaTime;
 
         updateCollider();
     }
@@ -148,8 +140,8 @@ namespace game::game_objects {
         maxRotationSpeed_(maxRotationSpeed) {
 
         if (abs(currentSpeed + 1) < 0.01f)
-            currentSpeed_ = maxSpeed;
-        else currentSpeed_ = currentSpeed;
+            currentSpeed_ = Vector2Normalize(currentSpeed_) * maxSpeed;
+        else currentSpeed_ = Vector2Normalize(currentSpeed_) * currentSpeed;
 
         vertices = { tr.corner(), tr.corner() + Vector2 {0, tr.scaledSize().y}, tr.center + Vector2 {tr.scaledSize().x / 2, 0}};
         collider = new components::ColliderPoly(tr.center, vertices);
@@ -172,17 +164,14 @@ namespace game::game_objects {
         Unit::physUpdate(deltaTime);
 
         if (!(IsKeyDown(KEY_UP) or IsKeyDown(KEY_DOWN))) {
-            if (std::abs(currentSpeed_) - 2 * std::abs(acceleration_) * deltaTime > 0) {
-                currentSpeed_ -= acceleration_ * deltaTime;
-            }
-            else {
-                currentSpeed_ = 0;
+            if (Vector2Length(currentSpeed_) > 0) {
+                currentSpeed_ -= accelerationDirection * acceleration_ * deltaTime;
             }
         }
 
-        vertices[0] += movingDirection * currentSpeed_ * deltaTime;
-        vertices[1] += movingDirection * currentSpeed_ * deltaTime;
-        vertices[2] += movingDirection * currentSpeed_ * deltaTime;
+        vertices[0] += currentSpeed_ * deltaTime;
+        vertices[1] += currentSpeed_ * deltaTime;
+        vertices[2] += currentSpeed_ * deltaTime;
 
         if (IsKeyDown(KEY_RIGHT) or IsKeyDown(KEY_LEFT)) {
             currentRotationSpeed_ += rotationAcceleration_ * deltaTime;
@@ -225,14 +214,17 @@ namespace game::game_objects {
 
     void Player::logicUpdate() {
 
+        if (!(IsKeyDown(KEY_UP) or IsKeyDown(KEY_DOWN))) {
+            accelerationDirection = Vector2Negate(Vector2Normalize(currentSpeed_));
+        }
 
         if (IsKeyDown(KEY_UP)) {
-            movingDirection = Vector2Normalize(vertices[2] - transform_.center);
+            accelerationDirection = Vector2Normalize(vertices[2] - transform_.center);
             acceleration_ = 100;
         }
 
         if (IsKeyDown(KEY_DOWN)) {
-            movingDirection = Vector2Normalize(vertices[2] - transform_.center);
+            accelerationDirection = Vector2Normalize(vertices[2] - transform_.center);
             acceleration_ = -100;
         };
         

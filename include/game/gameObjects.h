@@ -89,14 +89,15 @@ namespace game::game_objects {
         stats::Stat hp_ {0};
     protected:
         float maxSpeed_ = 0;
-        float currentSpeed_ = 0;
+        Vector2 currentSpeed_ = { 1, 0 };
 
         float acceleration_ = 0;
 
 
         void die();
     public:
-        Vector2 movingDirection {1, 0};
+        Vector2 accelerationDirection = { 0, 0 };
+
 
         explicit Unit(const components::Transform2D &tr, const int hp,
             const float maxSpeed):
@@ -119,11 +120,11 @@ namespace game::game_objects {
 
     class Asteroid final : public Unit {
     public:
-        Asteroid(const components::Transform2D &tr, const int hp, const float maxSpeed, const float currentSpeed=-1):
+        Asteroid(const components::Transform2D &tr, const int hp, const float maxSpeed, const float currentSpeed= - 1) :
         Unit(tr, hp, maxSpeed) {
             if (abs(currentSpeed + 1) < 0.01f)
-                currentSpeed_ = maxSpeed;
-            else currentSpeed_ = currentSpeed;
+                currentSpeed_ = Vector2Normalize(currentSpeed_) * maxSpeed;
+            else currentSpeed_ = Vector2Normalize(currentSpeed_) * currentSpeed;
             
             collider = new components::ColliderCircle(tr);
         }
@@ -132,6 +133,10 @@ namespace game::game_objects {
         void setCenter(const float x, const float y) {
             transform_.center = Vector2(x, y);
             updateCollider();
+        }
+
+        void setDirectionOfSpeed(Vector2 sp) {
+            currentSpeed_ = sp * Vector2Length(currentSpeed_);
         }
 
         void draw() override;

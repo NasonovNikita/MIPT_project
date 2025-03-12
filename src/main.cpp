@@ -59,8 +59,8 @@ int main() {
             10000, GetRandomValue(100, 300));
 
         const auto angle = GetRandomValue(0, 360);
-        asteroids[i].movingDirection = Vector2(cos(angle * PI / 180),
-                                               sin(angle * PI / 180));
+        asteroids[i].setDirectionOfSpeed(Vector2(cos(angle * PI / 180),
+                                               sin(angle * PI / 180)));
     }
 
     float DT = 0;
