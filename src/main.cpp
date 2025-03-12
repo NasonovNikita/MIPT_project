@@ -1,12 +1,16 @@
 #include <game/gameObjects.h>
+#include <core/objectPool.h>
 
 static constexpr int screenWidth = 800;
 static constexpr int screenHeight = 800;
 constexpr float deltaTimePhys = 0.002f;
 
+using game::game_objects::Asteroid;
+using core::object_pool::ObjectPool;
+
 std::vector<components::DrawnObject*> drawnObjects;
 std::vector<game::game_objects::CollidingObject*> collidingObjects;
-static std::vector<game::game_objects::Asteroid> asteroids;
+static std::vector<Asteroid> asteroids;
 
 void updatePhysics() {
     for (auto & asteroid : asteroids) {
