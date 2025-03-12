@@ -185,7 +185,12 @@ namespace game::game_objects {
 
         else {
             if (std::abs(currentRotationSpeed_) - std::abs(rotationAcceleration_) * deltaTime > 0) {
-                currentRotationSpeed_ -= rotationAcceleration_ * deltaTime; 
+                if (currentRotationSpeed_ * rotationAcceleration_ > 0) {
+                    currentRotationSpeed_ -= rotationAcceleration_ * deltaTime;
+                }
+                else {
+                    currentRotationSpeed_ += rotationAcceleration_ * deltaTime;
+                }
             }
             else {
                 currentRotationSpeed_ = 0;
