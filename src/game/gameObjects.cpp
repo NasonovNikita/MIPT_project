@@ -82,40 +82,37 @@ namespace game::game_objects {
 
     void MovingObject::bounceByNormal(const Vector2 normal) {
         const auto mirrored = Vector2Normalize(normal) * Vector2DotProduct(
-                                  movingDirection, Vector2Normalize(normal));
+                                  currentSpeed_, Vector2Normalize(normal));
 
-        movingDirection -= mirrored * 2;
-        movingDirection = Vector2Normalize(movingDirection); // For safety if precision is low
+        currentSpeed_ -= mirrored * 2;
     }
 
     void MovingObject::bounceFromOther(MovingObject &other, const Vector2 collisionNormal) {
-        const Vector2 relativeSpeed = movingDirection * currentSpeed_ - other.
-                                      movingDirection * other.currentSpeed_;
 
-        const Vector2 newSpeed = movingDirection * currentSpeed_ - collisionNormal *
+        const Vector2 relativeSpeed = currentSpeed_ - other.currentSpeed_;
+
+        const Vector2 newSpeed = currentSpeed_ - collisionNormal *
                                  Vector2DotProduct(collisionNormal, relativeSpeed);
-        movingDirection = Vector2Normalize(newSpeed);
-        currentSpeed_ = (newSpeed / movingDirection).x;   // x == y
 
-        const Vector2 otherNewSpeed = other.movingDirection * other.currentSpeed_ -
+        currentSpeed_ = newSpeed;  // x == y
+
+        const Vector2 otherNewSpeed = other.currentSpeed_ -
                                       collisionNormal * Vector2DotProduct(
                                           collisionNormal,
                                           Vector2Negate(relativeSpeed));
-        other.movingDirection = Vector2Normalize(otherNewSpeed);
-        other.currentSpeed_ = (otherNewSpeed / other.movingDirection).x;
+        other.currentSpeed_ = otherNewSpeed;
     }
 
     void MovingObject::physUpdate(const float deltaTime) {
         if (!isActive_) return;
 
-        currentSpeed_ += acceleration_ * deltaTime;
-        if (currentSpeed_ > maxSpeed_) {
-            currentSpeed_ = maxSpeed_;
+        currentSpeed_ = currentSpeed_ + accelerationDirection * acceleration_ * deltaTime;
+        if (Vector2Length(currentSpeed_) > maxSpeed_) {
+            currentSpeed_ = Vector2Normalize(currentSpeed_) * maxSpeed_;
         }
 
-        transform_.center += movingDirection * currentSpeed_ * deltaTime;
+        transform_.center += currentSpeed_ * deltaTime;
     }
-
 
     void Unit::die() {
         setActive(false);
@@ -128,7 +125,6 @@ namespace game::game_objects {
             die();
         }
     }
-
 
     void Asteroid::draw() {
         if (!isActive()) return;
@@ -154,16 +150,98 @@ namespace game::game_objects {
         resolveCollision(*other);
     }
 
+    std::vector<Vector2> Player::getVertices() {
+        return vertices;
+    }
+
 
     Player *Player::s_instance;
 
-    void Player::draw() {
-        // TODO Player::Draw by Maks
-        // A narrow triangle pointing to current
-        // pointing position (rotation in transform)
+        void Player::draw() {
+
+            DrawTriangle(vertices[0], vertices[1], vertices[2], GREEN);
+
+            DrawTriangleLines(vertices[0], vertices[1], vertices[2], BLUE);
+        }
+    void Player::physUpdate(float deltaTime) {
+        Unit::physUpdate(deltaTime);
+
+        if (!(IsKeyDown(KEY_UP) or IsKeyDown(KEY_DOWN))) {
+            if (Vector2Length(currentSpeed_) > 0) {
+                currentSpeed_ -= accelerationDirection * acceleration_ * deltaTime;
+            }
+        }
+
+        vertices[0] += currentSpeed_ * deltaTime;
+        vertices[1] += currentSpeed_ * deltaTime;
+        vertices[2] += currentSpeed_ * deltaTime;
+
+        if (IsKeyDown(KEY_RIGHT) or IsKeyDown(KEY_LEFT)) {
+            currentRotationSpeed_ += rotationAcceleration_ * deltaTime;
+            if (currentRotationSpeed_ > maxRotationSpeed_) {
+                currentRotationSpeed_ = maxRotationSpeed_;
+            }
+            if (-currentRotationSpeed_ > maxRotationSpeed_) {
+                currentRotationSpeed_ = -maxRotationSpeed_;
+            }
+        }
+
+        else {
+            if (std::abs(currentRotationSpeed_) - std::abs(rotationAcceleration_) * deltaTime > 0) {
+                if (currentRotationSpeed_ * rotationAcceleration_ > 0) {
+                    currentRotationSpeed_ -= rotationAcceleration_ * deltaTime;
+                }
+                else {
+                    currentRotationSpeed_ += rotationAcceleration_ * deltaTime;
+                }
+            }
+            else {
+                currentRotationSpeed_ = 0;
+            }
+        }
+
+
+        auto dAngle_ = currentRotationSpeed_ * deltaTime;
+
+        angle_ += dAngle_;
+        if (angle_ > 180) angle_ -= 180;
+        if (angle_ < -180) angle_ += 180;
+
+        transform_.angle = angle_;
+
+        vertices = { transform_.center + Vector2Rotate(vertices[0] - transform_.center, dAngle_),
+                         transform_.center + Vector2Rotate(vertices[1] - transform_.center, dAngle_),
+                         transform_.center + Vector2Rotate(vertices[2] - transform_.center, dAngle_) };
+
+
+
+        collider->rotate(dAngle_);
     }
 
     void Player::logicUpdate() {
+
+        if (!(IsKeyDown(KEY_UP) or IsKeyDown(KEY_DOWN))) {
+            accelerationDirection = Vector2Negate(Vector2Normalize(currentSpeed_));
+        }
+
+        if (IsKeyDown(KEY_UP)) {
+            accelerationDirection = Vector2Normalize(vertices[2] - transform_.center);
+            acceleration_ = 100;
+        }
+
+        if (IsKeyDown(KEY_DOWN)) {
+            accelerationDirection = Vector2Normalize(vertices[2] - transform_.center);
+            acceleration_ = -100;
+        };
+
+        if (IsKeyDown(KEY_RIGHT)) {
+            rotationAcceleration_ = 10;
+        }
+
+        if (IsKeyDown(KEY_LEFT)) {
+            rotationAcceleration_ = -10;
+        }
+
         // TODO controls
     }
 

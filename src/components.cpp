@@ -3,6 +3,7 @@
 //
 
 #include <components.h>
+#include <functional>
 #include <stdexcept>
 
 namespace components {
@@ -157,7 +158,7 @@ namespace components {
             }
 
             // Add the support point to the polytope
-            polytope.insert(polytope.begin() + face.index, support);
+            polytope.insert(polytope.begin() + static_cast<int>(face.index), support);
         }
     }
 
@@ -201,6 +202,11 @@ namespace components {
 
         return result;
     }
+
+
+    void ColliderRect::rotate(float angle) {
+        throw std::bad_function_call();  // No possible rotation. Use ColliderPoly for rotating rect
+    }
 #pragma endregion
 
 #pragma region ColliderCircle
@@ -235,11 +241,14 @@ namespace components {
     }
 
     Rectangle ColliderCircle::getInnerBox() {
-        return Rectangle(center.x - radius_ / sqrt(2),
-                         center.y - radius_ / sqrt(2), sqrt(2) * radius_,
-                         sqrt(2) * radius_);
+        const auto sqrt2 = static_cast<float>(sqrt(2));
+        return Rectangle(center.x - radius_ / sqrt2, center.y - radius_ / sqrt2,
+                         sqrt2 * radius_, sqrt2 * radius_);
     }
 
+    void ColliderCircle::rotate(float angle) {
+        // No need. Leave as pure virtual or not?
+    }
 #pragma endregion
 
 #pragma region ColliderPoly
@@ -292,5 +301,18 @@ namespace components {
         return Rectangle(xMin + (xMax - xMin) / 4, yMin + (yMax - yMin) / 4,
                          xMax - (xMax - xMin) / 4, yMax - (yMax - yMin) / 4);
     }
+
+
+    void ColliderPoly::rotate(const float angle) {
+        const float rad = angle * PI / 180.0f;
+
+        for (auto&point : vertices_) {
+            const Vector2 diff = point - center_;
+            point = center_ + Vector2Rotate(diff, rad);
+        }
+    }
 #pragma endregion
+
+
+
 }

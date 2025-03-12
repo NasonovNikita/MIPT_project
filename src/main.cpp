@@ -1,8 +1,8 @@
 #include <game/gameObjects.h>
 #include <core/objectPool.h>
 
-static constexpr int screenWidth = 800;
-static constexpr int screenHeight = 800;
+constexpr int screenWidth = 1040;
+constexpr int screenHeight = 1040;
 constexpr float deltaTimePhys = 0.002f;
 
 using game::game_objects::Asteroid;
@@ -11,6 +11,7 @@ using core::object_pool::ObjectPool;
 std::vector<components::DrawnObject*> drawnObjects;
 std::vector<game::game_objects::CollidingObject*> collidingObjects;
 static std::vector<Asteroid> asteroids;
+static game::game_objects::Player player(components::Transform2D(100, 400, 50, 50), 100, 300, 10, 100);
 
 void updatePhysics() {
     for (auto & asteroid : asteroids) {
@@ -48,6 +49,9 @@ void updatePhysics() {
             collidingObjects[j]->onCollided(collidingObjects[i]);
         }
     }
+
+    player.physUpdate(deltaTimePhys);
+    player.updateCollider();
 }
 
 int main() {
