@@ -177,9 +177,10 @@ namespace game::game_objects {
     public:
         static Player *getInstance() { return s_instance; }
 
-        static void SpawnPlayer(const components::Transform2D &tr, const int hp,
+        static Player* SpawnPlayer(const components::Transform2D &tr, const int hp,
             const float maxSpeed, const float maxRotationSpeed) {
             s_instance = new Player(tr, hp, maxSpeed, maxRotationSpeed);
+            return s_instance;
         }
 
         std::vector<Vector2> getVertices();
