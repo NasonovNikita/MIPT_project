@@ -98,19 +98,23 @@ namespace game::game_objects {
         Vector2 accelerationDirection = { 0, 0 };
         ~MovingObject() override = 0;
 
+        explicit MovingObject(const float maxSpeed):
+        maxSpeed_(maxSpeed) {}
+
         /// Change direction of movement as if it bounced from surface with given normal
         void bounceByNormal(Vector2 normal);
-
 
         void bounceFromOther(MovingObject& other, Vector2 collisionNormal);
 
         void physUpdate(float deltaTime) override;
-
-        explicit MovingObject(const float maxSpeed):
-        maxSpeed_(maxSpeed) {}
     };
 
-    class Unit : public CollidingObject, public components::DrawnObject, public MovingObject {
+    class DrawnGameObject: public components::DrawnObject, public virtual GameObject {
+    public:
+        DrawnGameObject() {}
+    };
+
+    class Unit : public CollidingObject, public DrawnGameObject, public MovingObject {
         stats::Stat hp_ {0};
     protected:
 
@@ -163,31 +167,33 @@ namespace game::game_objects {
         float currentRotationSpeed_ = 0;
         float rotationAcceleration_ = 0;
         std::vector<Vector2> vertices = { Vector2 (0, 0), Vector2 (0, 0), Vector2 (0, 0)};
-    public:
         static Player *s_instance;
 
+        explicit Player(const components::Transform2D &tr, const int hp,
+            const float maxSpeed, const float maxRotationSpeed):
+        GameObject(tr), Unit(hp, maxSpeed),
+        maxRotationSpeed_(maxRotationSpeed) {}
+
+    public:
         static Player *getInstance() { return s_instance; }
 
-        std::vector<Vector2> getVertices();
-
-        explicit Player(const components::Transform2D &tr, const int hp,
-            const float maxSpeed,
-            const float maxRotationSpeed,
-            const float currentSpeed):
-        GameObject(tr), Unit(hp, maxSpeed),
-        maxRotationSpeed_(maxRotationSpeed) {
-            s_instance = this;
+        static void SpawnPlayer(const components::Transform2D &tr, const int hp,
+            const float maxSpeed, const float maxRotationSpeed) {
+            s_instance = new Player(tr, hp, maxSpeed, maxRotationSpeed);
         }
+
+        std::vector<Vector2> getVertices();
 
         void draw() override;
         void physUpdate(float deltaTime) override;
         void logicUpdate() override;
     };
 
-    class Bullet final : public CollidingObject, public MovingObject, public components::DrawnObject{
+    class Bullet final : public CollidingObject, public MovingObject, public DrawnGameObject {
     public:
         Bullet(const components::Transform2D &tr, const float maxSpeed):
-        GameObject(tr), CollidingObject(new components::ColliderCircle(tr)), MovingObject(maxSpeed) {
+        GameObject(tr), CollidingObject(new components::ColliderCircle(tr)),
+        MovingObject(maxSpeed) {
             currentSpeed_ = {maxSpeed, 0};
         }
 

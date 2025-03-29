@@ -8,6 +8,8 @@
 #include <stdexcept>
 #include <game/gameObjects.h>
 
+#include "core/objectManager.h"
+
 
 namespace game::game_objects {
 #pragma region GameObject
@@ -52,7 +54,6 @@ namespace game::game_objects {
     }
 
 #pragma endregion
-
 
     CollidingObject::~CollidingObject() {
         GameObject::~GameObject();
@@ -157,12 +158,11 @@ namespace game::game_objects {
 
     Player *Player::s_instance;
 
-        void Player::draw() {
+    void Player::draw() {
+        DrawTriangle(vertices[0], vertices[1], vertices[2], GREEN);
 
-            DrawTriangle(vertices[0], vertices[1], vertices[2], GREEN);
-
-            DrawTriangleLines(vertices[0], vertices[1], vertices[2], BLUE);
-        }
+        DrawTriangleLines(vertices[0], vertices[1], vertices[2], BLUE);
+    }
 
     void Player::physUpdate(float deltaTime) {
         Unit::physUpdate(deltaTime);
@@ -200,7 +200,6 @@ namespace game::game_objects {
                 currentRotationSpeed_ = 0;
             }
         }
-
 
         auto dAngle_ = currentRotationSpeed_ * deltaTime;
 
@@ -241,6 +240,11 @@ namespace game::game_objects {
 
         if (IsKeyDown(KEY_LEFT)) {
             rotationAcceleration_ = -10;
+        }
+
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            core::management::ObjectManager::Instance().CreateObject<Bullet>(
+        components::Transform2D(100, 200, 10, 10), 300);
         }
     }
 
