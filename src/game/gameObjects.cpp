@@ -226,25 +226,25 @@ namespace game::game_objects {
 
         if (IsKeyDown(KEY_UP)) {
             accelerationDirection = Vector2Normalize(vertices[2] - transform_.center);
-            acceleration_ = 100;
+            acceleration_ = 500;
         }
 
         if (IsKeyDown(KEY_DOWN)) {
             accelerationDirection = Vector2Normalize(vertices[2] - transform_.center);
-            acceleration_ = -100;
+            acceleration_ = -500;
         };
 
         if (IsKeyDown(KEY_RIGHT)) {
-            rotationAcceleration_ = 10;
+            rotationAcceleration_ = 20;
         }
 
         if (IsKeyDown(KEY_LEFT)) {
-            rotationAcceleration_ = -10;
+            rotationAcceleration_ = -20;
         }
 
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             core::management::ObjectManager::Instance().CreateObject<Bullet>(
-        components::Transform2D(100, 200, 10, 10), 300);
+        components::Transform2D(vertices[2].x, vertices[2].y, 10, 10), 300, angle_);
         }
     }
 

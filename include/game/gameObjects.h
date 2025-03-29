@@ -172,7 +172,10 @@ namespace game::game_objects {
         explicit Player(const components::Transform2D &tr, const int hp,
             const float maxSpeed, const float maxRotationSpeed):
         GameObject(tr), Unit(hp, maxSpeed),
-        maxRotationSpeed_(maxRotationSpeed) {}
+        maxRotationSpeed_(maxRotationSpeed) {
+            vertices = { tr.corner(), tr.corner() + Vector2 {0, tr.scaledSize().y}, tr.center + Vector2 {tr.scaledSize().x / 2, 0}};
+            collider = new components::ColliderPoly(tr.center, vertices);
+        }
 
     public:
         static Player *getInstance() { return s_instance; }
@@ -192,10 +195,10 @@ namespace game::game_objects {
 
     class Bullet final : public CollidingObject, public MovingObject, public DrawnGameObject {
     public:
-        Bullet(const components::Transform2D &tr, const float maxSpeed):
+        Bullet(const components::Transform2D &tr, const float maxSpeed, const float angle = 0):
         GameObject(tr), CollidingObject(new components::ColliderCircle(tr)),
         MovingObject(maxSpeed) {
-            currentSpeed_ = {maxSpeed, 0};
+            currentSpeed_ = {maxSpeed * cos(angle), maxSpeed * sin(angle)};
         }
 
         void draw() override;

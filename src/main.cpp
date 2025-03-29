@@ -10,41 +10,56 @@ constexpr float deltaTimePhys = 0.002f;
 using game::game_objects::Asteroid;
 using core::object_pool::ObjectPool;
 
-static std::vector<Asteroid*> asteroids;
+static std::vector<std::weak_ptr<Asteroid>> asteroids;
 
 auto& manager = core::management::ObjectManager::Instance();
 
-void updatePhysics() {
-    for (const auto asteroid : asteroids) {
-        if (!asteroid->isActive()) continue;
+void CleanupAsteroidList() {
+    // Remove expired weak_ptrs
+    std::erase_if(asteroids,
+                  [](const std::weak_ptr<Asteroid>& weakAsteroid) {
+                      return weakAsteroid.expired(); // True if object was deleted
+                  });
+}
 
-        auto tr = asteroid->getTransform();
-        if (tr.center.x + tr.scaledSize().x / 2 >= screenWidth) {
-            tr.center.x = screenWidth - tr.scaledSize().x / 2;
-            asteroid->bounceByNormal({-1, 0});
+void updatePhysics() {
+    for (const auto& asteroid : asteroids) {
+        if (const auto asteroidPtr = asteroid.lock()) {
+            if (!asteroidPtr->isActive()) continue;
+
+            auto tr = asteroidPtr->getTransform();
+            if (tr.center.x + tr.scaledSize().x / 2 >= screenWidth) {
+                tr.center.x = screenWidth - tr.scaledSize().x / 2;
+                asteroidPtr->bounceByNormal({-1, 0});
+            }
+            if (tr.center.x - tr.scaledSize().x / 2 <= 0) {
+                tr.center.x = screenWidth + tr.scaledSize().x / 2;
+                asteroidPtr->bounceByNormal({1, 0});
+            }
+            if (tr.center.y + tr.scaledSize().y / 2 > screenHeight) {
+                tr.center.y = screenHeight - tr.scaledSize().y / 2;
+                asteroidPtr->bounceByNormal({0, -1});
+            }
+            if (tr.center.y - tr.scaledSize().y / 2 < 0) {
+                tr.center.y = screenHeight + tr.scaledSize().y / 2;
+                asteroidPtr->bounceByNormal({0, 1});
+            }
+            asteroidPtr->updateCollider();
         }
-        if (tr.center.x - tr.scaledSize().x / 2 <= 0) {
-            tr.center.x = screenWidth + tr.scaledSize().x / 2;
-            asteroid->bounceByNormal({1, 0});
-        }
-        if (tr.center.y + tr.scaledSize().y / 2 > screenHeight) {
-            tr.center.y = screenHeight - tr.scaledSize().y / 2;
-            asteroid->bounceByNormal({0, -1});
-        }
-        if (tr.center.y - tr.scaledSize().y / 2 < 0) {
-            tr.center.y = screenHeight + tr.scaledSize().y / 2;
-            asteroid->bounceByNormal({0, 1});
-        }
-        asteroid->updateCollider();
     }
 
     for (const auto& gameObject : game::game_objects::GameObject::s_allObjects) {
+        if (!gameObject->isActive()) continue;
         gameObject->physUpdate(deltaTimePhys);
     }
 
     const auto& collidingObjects = manager.GetCollidingObjects();
     for (int i = 0; i < collidingObjects.size(); i++) {
+        if (!collidingObjects[i]->isActive()) continue;
+
         for (int j = i; j < collidingObjects.size(); j++) {
+            if (!collidingObjects[j]->isActive()) continue;
+
             if (!collidingObjects[i]->collider->checkCollision(*collidingObjects[j]->collider)) continue;
 
             collidingObjects[i]->onCollided(collidingObjects[j]);
@@ -66,24 +81,20 @@ int main() {
     asteroids.emplace_back(manager.CreateObject<Asteroid>(
         components::Transform2D(200, 200, 50, 50), 10, 50, 0));
 
-    manager.CreateObject<game::game_objects::Bullet>(
-        components::Transform2D(100, 200, 10, 10), 300);
+    float DT = 0;
 
     while (!WindowShouldClose()) {
         // Physics update
-        for (auto* obj : manager.GetAllObjects()) {
-            obj->physUpdate(deltaTimePhys);
+        DT += GetFrameTime();
+        while (DT > deltaTimePhys) {
+            updatePhysics();
+            DT -= deltaTimePhys;
         }
 
-        // Collision detection
-        auto& colliders = manager.GetCollidingObjects();
-        for (size_t i = 0; i < colliders.size(); ++i) {
-            for (size_t j = i + 1; j < colliders.size(); ++j) {
-                if (colliders[i]->collider->checkCollision(*colliders[j]->collider)) {
-                    colliders[i]->onCollided(colliders[j]);
-                    colliders[j]->onCollided(colliders[i]);
-                }
-            }
+        // Logic
+        for (const auto& gameObject : game::game_objects::GameObject::s_allObjects) {
+            if (!gameObject->isActive()) continue;
+            gameObject->logicUpdate();
         }
 
         // Rendering
@@ -96,6 +107,7 @@ int main() {
 
         // Cleanup
         manager.DestroyInactive();
+        CleanupAsteroidList();
     }
 
     return 0;

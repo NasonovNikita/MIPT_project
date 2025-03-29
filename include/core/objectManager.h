@@ -9,10 +9,24 @@
 #include <vector>
 #include <memory>
 #include <game/gameObjects.h>
-#include <components.h>
 
 namespace core::management {
     class ObjectManager {
+        ObjectManager() = default;
+        ~ObjectManager() = default;
+
+        void RegisterInterfaces(game::game_objects::GameObject* obj) {
+            if (const auto drawn = dynamic_cast<game::game_objects::DrawnGameObject*>(obj)) {
+                drawnObjects_.push_back(drawn);
+            }
+            if (const auto colliding = dynamic_cast<game::game_objects::CollidingObject*>(obj)) {
+                collidingObjects_.push_back(colliding);
+            }
+        }
+
+        std::vector<std::shared_ptr<game::game_objects::GameObject>> ownedObjects_;
+        std::vector<game::game_objects::DrawnGameObject*> drawnObjects_;
+        std::vector<game::game_objects::CollidingObject*> collidingObjects_;
     public:
         // Singleton access
         static ObjectManager& Instance() {
@@ -22,15 +36,14 @@ namespace core::management {
 
         // Object creation
         template<typename T, typename... Args>
-        T* CreateObject(Args&&... args) {
+        std::shared_ptr<T> CreateObject(Args&&... args) {
             static_assert(std::is_base_of_v<game::game_objects::GameObject, T>,
                           "T must inherit from GameObject");
 
-            auto obj = std::make_unique<T>(std::forward<Args>(args)...);
-            T* rawPtr = obj.get();
-            RegisterInterfaces(rawPtr);
+            auto obj = std::make_shared<T>(std::forward<Args>(args)...);
+            RegisterInterfaces(obj.get());
             ownedObjects_.push_back(std::move(obj));
-            return rawPtr;
+            return obj;
         }
 
         // Object registration (for externally created objects like Player)
@@ -88,23 +101,6 @@ namespace core::management {
         // Prevent copying
         ObjectManager(const ObjectManager&) = delete;
         void operator=(const ObjectManager&) = delete;
-
-    private:
-        ObjectManager() = default;
-        ~ObjectManager() = default;
-
-        void RegisterInterfaces(game::game_objects::GameObject* obj) {
-            if (auto drawn = dynamic_cast<game::game_objects::DrawnGameObject*>(obj)) {
-                drawnObjects_.push_back(drawn);
-            }
-            if (auto colliding = dynamic_cast<game::game_objects::CollidingObject*>(obj)) {
-                collidingObjects_.push_back(colliding);
-            }
-        }
-
-        std::vector<std::unique_ptr<game::game_objects::GameObject>> ownedObjects_;
-        std::vector<game::game_objects::DrawnGameObject*> drawnObjects_;
-        std::vector<game::game_objects::CollidingObject*> collidingObjects_;
     };
 }
 
