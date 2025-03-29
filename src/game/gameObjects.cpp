@@ -163,6 +163,7 @@ namespace game::game_objects {
 
             DrawTriangleLines(vertices[0], vertices[1], vertices[2], BLUE);
         }
+
     void Player::physUpdate(float deltaTime) {
         Unit::physUpdate(deltaTime);
 
@@ -215,7 +216,7 @@ namespace game::game_objects {
 
 
 
-        collider->rotate(dAngle_);
+        // collider->rotate(dAngle_); TODO
     }
 
     void Player::logicUpdate() {
