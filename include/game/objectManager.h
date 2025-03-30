@@ -10,23 +10,23 @@
 #include <memory>
 #include <game/gameObjects.h>
 
-namespace core::management {
+namespace game::management {
     class ObjectManager {
         ObjectManager() = default;
         ~ObjectManager() = default;
 
-        void RegisterInterfaces(game::game_objects::GameObject* obj) {
-            if (const auto drawn = dynamic_cast<game::game_objects::DrawnGameObject*>(obj)) {
+        void RegisterInterfaces(game_objects::GameObject* obj) {
+            if (const auto drawn = dynamic_cast<game_objects::DrawnGameObject*>(obj)) {
                 drawnObjects_.push_back(drawn);
             }
-            if (const auto colliding = dynamic_cast<game::game_objects::CollidingObject*>(obj)) {
+            if (const auto colliding = dynamic_cast<game_objects::CollidingObject*>(obj)) {
                 collidingObjects_.push_back(colliding);
             }
         }
 
-        std::vector<std::shared_ptr<game::game_objects::GameObject>> ownedObjects_;
-        std::vector<game::game_objects::DrawnGameObject*> drawnObjects_;
-        std::vector<game::game_objects::CollidingObject*> collidingObjects_;
+        std::vector<std::shared_ptr<game_objects::GameObject>> ownedObjects_;
+        std::vector<game_objects::DrawnGameObject*> drawnObjects_;
+        std::vector<game_objects::CollidingObject*> collidingObjects_;
     public:
         // Singleton access
         static ObjectManager& Instance() {
@@ -37,30 +37,30 @@ namespace core::management {
         // Object creation
         template<typename T, typename... Args>
         std::shared_ptr<T> CreateObject(Args&&... args) {
-            static_assert(std::is_base_of_v<game::game_objects::GameObject, T>,
+            static_assert(std::is_base_of_v<game_objects::GameObject, T>,
                           "T must inherit from GameObject");
 
             auto obj = std::make_shared<T>(std::forward<Args>(args)...);
             RegisterInterfaces(obj.get());
-            ownedObjects_.push_back(std::move(obj));
+            ownedObjects_.push_back(obj);
             return obj;
         }
 
         // Object registration (for externally created objects like Player)
-        void RegisterExternalObject(game::game_objects::GameObject* obj) {
+        void RegisterExternalObject(game_objects::GameObject* obj) {
             RegisterInterfaces(obj);
         }
 
         // Accessors
-        [[nodiscard]] const std::list<game::game_objects::GameObject*>& GetAllObjects() const {
-            return game::game_objects::GameObject::s_allObjects;
+        [[nodiscard]] static const std::list<game_objects::GameObject*>& GetAllObjects() {
+            return game_objects::GameObject::s_allObjects;
         }
 
-        [[nodiscard]] const std::vector<game::game_objects::DrawnGameObject*>& GetDrawnObjects() const {
+        [[nodiscard]] const std::vector<game_objects::DrawnGameObject*>& GetDrawnObjects() const {
             return drawnObjects_;
         }
 
-        [[nodiscard]] const std::vector<game::game_objects::CollidingObject*>& GetCollidingObjects() const {
+        [[nodiscard]] const std::vector<game_objects::CollidingObject*>& GetCollidingObjects() const {
             return collidingObjects_;
         }
 
@@ -73,7 +73,7 @@ namespace core::management {
 
         void DestroyInactive() {
             // Phase 1: Mark inactive objects
-            std::vector<game::game_objects::GameObject*> toRemove;
+            std::vector<game_objects::GameObject*> toRemove;
             for (auto& obj : ownedObjects_) {
                 if (!obj->isActive()) {
                     toRemove.push_back(obj.get());

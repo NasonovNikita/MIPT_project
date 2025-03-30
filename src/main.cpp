@@ -1,7 +1,6 @@
 #include <game/gameObjects.h>
 #include <core/objectPool.h>
-
-#include "core/objectManager.h"
+#include <game/objectManager.h>
 
 constexpr int screenWidth = 1040;
 constexpr int screenHeight = 1040;
@@ -9,22 +8,28 @@ constexpr float deltaTimePhys = 0.002f;
 
 using game::game_objects::Asteroid;
 using core::object_pool::ObjectPool;
+using game::game_objects::GameObject;
 
-static std::vector<std::weak_ptr<Asteroid>> asteroids;
+static std::vector<std::shared_ptr<Asteroid>> asteroids;
+static ObjectPool<Asteroid> asteroidPool;
 
-auto& manager = core::management::ObjectManager::Instance();
+auto& manager = game::management::ObjectManager::Instance();
 
 void CleanupAsteroidList() {
+    for (const auto& asteroid : asteroids) {
+        if (!asteroid->isActive()) asteroidPool.release(asteroid);
+    }
+
     // Remove expired weak_ptrs
     std::erase_if(asteroids,
-                  [](const std::weak_ptr<Asteroid>& weakAsteroid) {
-                      return weakAsteroid.expired(); // True if object was deleted
+                  [](const std::shared_ptr<Asteroid>& asteroid) {
+                      return !asteroid->isActive();
                   });
 }
 
 void updatePhysics() {
     for (const auto& asteroid : asteroids) {
-        if (const auto asteroidPtr = asteroid.lock()) {
+        if (const auto asteroidPtr = asteroid.get()) {
             if (!asteroidPtr->isActive()) continue;
 
             auto tr = asteroidPtr->getTransform();
@@ -48,7 +53,7 @@ void updatePhysics() {
         }
     }
 
-    for (const auto& gameObject : game::game_objects::GameObject::s_allObjects) {
+    for (const auto& gameObject : GameObject::s_allObjects) {
         if (!gameObject->isActive()) continue;
         gameObject->physUpdate(deltaTimePhys);
     }
@@ -78,8 +83,9 @@ int main() {
     manager.RegisterExternalObject(game::game_objects::Player::getInstance());
 
     // Create objects through manager
-    asteroids.emplace_back(manager.CreateObject<Asteroid>(
-        components::Transform2D(200, 200, 50, 50), 10, 50, 0));
+    auto newAst = manager.CreateObject<Asteroid>(
+        components::Transform2D(200, 200, 50, 50), 10, 50, 0);
+    asteroids.push_back(newAst);
 
     float DT = 0;
 
@@ -92,7 +98,7 @@ int main() {
         }
 
         // Logic
-        for (const auto& gameObject : game::game_objects::GameObject::s_allObjects) {
+        for (const auto& gameObject : game::management::ObjectManager::GetAllObjects()) {
             if (!gameObject->isActive()) continue;
             gameObject->logicUpdate();
         }
@@ -108,6 +114,13 @@ int main() {
         // Cleanup
         manager.DestroyInactive();
         CleanupAsteroidList();
+
+        if (asteroids.empty()) {
+            auto aquiredAsteroid = asteroidPool.acquire();
+            aquiredAsteroid->setActive(true);
+            manager.RegisterExternalObject(aquiredAsteroid.get());
+            asteroids.push_back(aquiredAsteroid);
+        }
     }
 
     return 0;

@@ -10,22 +10,24 @@
 namespace core::object_pool {
     template<typename T>
     class ObjectPool {
-        std::queue<std::unique_ptr<T>> availableObjects;
+        std::queue<std::shared_ptr<T>> availableObjects;
 
     public:
         explicit ObjectPool() = default;
 
-        std::unique_ptr<T> acquire() {
+        [[nodiscard]] bool isEmpty() const { return availableObjects.empty(); }
+
+        std::shared_ptr<T> acquire() {
             if (availableObjects.empty()) {
-                return std::make_unique<T>();
+                return nullptr;
             }
 
-            std::unique_ptr<T> obj = std::move(availableObjects.front());
+            std::shared_ptr<T> obj = std::move(availableObjects.front());
             availableObjects.pop();
             return obj;
         }
 
-        void release(std::unique_ptr<T> obj) {
+        void release(std::shared_ptr<T> obj) {
             availableObjects.push(std::move(obj));
         }
     };

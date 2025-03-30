@@ -7,8 +7,7 @@
 #include <ranges>
 #include <stdexcept>
 #include <game/gameObjects.h>
-
-#include "core/objectManager.h"
+#include <game/objectManager.h>
 
 
 namespace game::game_objects {
@@ -215,7 +214,7 @@ namespace game::game_objects {
 
 
 
-        // collider->rotate(dAngle_); TODO
+        collider->rotate(dAngle_);
     }
 
     void Player::logicUpdate() {
@@ -243,7 +242,7 @@ namespace game::game_objects {
         }
 
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-            core::management::ObjectManager::Instance().CreateObject<Bullet>(
+            management::ObjectManager::Instance().CreateObject<Bullet>(
         components::Transform2D(vertices[2].x, vertices[2].y, 10, 10), 300, angle_);
         }
     }
