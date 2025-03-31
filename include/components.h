@@ -52,7 +52,6 @@ namespace components {
         virtual ~Collider() = default;
         Vector2 getCollisionNormal(Collider &other);
 
-        // TODO fix/collider_position - change to offset
         /// Set center (used by collider as pivot)
         virtual void setCenter(Vector2 center) = 0;
 
