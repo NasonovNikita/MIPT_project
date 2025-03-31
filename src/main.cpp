@@ -118,6 +118,8 @@ int main() {
         if (asteroids.empty()) {
             auto aquiredAsteroid = asteroidPool.acquire();
             aquiredAsteroid->setActive(true);
+            aquiredAsteroid->getTransform().center = Vector2(
+                GetRandomValue(100, 700), GetRandomValue(100, 700));
             manager.registerExternalObject(aquiredAsteroid.get());
             asteroids.push_back(aquiredAsteroid);
         }

@@ -37,7 +37,7 @@ namespace game::game_objects {
 
         [[nodiscard]] GameObject *getParent() const { return parent_; }
 
-        [[nodiscard]] components::Transform2D getTransform() const { return transform_; }
+        [[nodiscard]] components::Transform2D& getTransform() { return transform_; }
 
         void setActive(const bool active) { isActive_ = active; }
 

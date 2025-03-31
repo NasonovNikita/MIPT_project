@@ -6,7 +6,6 @@
 #define COMPONENTS_H
 #include <raylib.h>
 #include <raymath.h>
-#include <utility>
 #include <vector>
 
 namespace components {
@@ -33,7 +32,8 @@ namespace components {
 
 
     struct Collider {
-        friend Vector2 EPA(Collider& colliderA, Collider& colliderB, const std::vector<Vector2>& simplex);
+        friend Vector2 EPA(Collider &colliderA, Collider &colliderB,
+                           const std::vector<Vector2> &simplex);
     protected:
         /// Used in case you need simplex after check
         bool checkCollision(Collider &other, std::vector<Vector2>& simplex);
@@ -51,8 +51,10 @@ namespace components {
         virtual ~Collider() = default;
         Vector2 getCollisionNormal(Collider &other);
 
+        // TODO fix/collider_position - change to offset
         /// Set center (used by collider as pivot)
         virtual void setCenter(Vector2 center) = 0;
+
         virtual void rotate(float angle) = 0;
     };
 
