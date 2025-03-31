@@ -16,6 +16,7 @@ static ObjectPool<Asteroid> asteroidPool;
 
 auto& manager = game::management::ObjectManager::getInstance();
 
+#pragma region SupportFunctions
 void CleanupAsteroidList() {
     for (const auto& asteroid : asteroids) {
         if (!asteroid->isActive()) asteroidPool.release(asteroid);
@@ -74,13 +75,26 @@ void updatePhysics() {
     }
 }
 
+void TEMP_refiveAsteroid() {
+    if (asteroids.empty()) {
+        auto acquiredAsteroid = asteroidPool.acquire();
+        acquiredAsteroid->setActive(true);
+        acquiredAsteroid->getTransform().center = Vector2(
+            GetRandomValue(100, 700), GetRandomValue(100, 700));
+        manager.registerExternalObject(acquiredAsteroid.get());
+        asteroids.push_back(acquiredAsteroid);
+    }
+}
+
+#pragma endregion
+
 int main() {
     InitWindow(screenWidth, screenHeight, "test");
     SetTargetFPS(60);
 
     // Player (singleton pattern remains)
     game::game_objects::Player::SpawnPlayer(
-        components::Transform2D(100, 400, 50, 50), 100, 300, 10);
+        components::Transform2D(100, 400, 50, 50), 100, 300, 3);
     manager.registerExternalObject(game::game_objects::Player::getInstance());
 
     // Create objects through manager
@@ -117,15 +131,7 @@ int main() {
         // Cleanup
         manager.destroyInactive();
         CleanupAsteroidList();
-
-        if (asteroids.empty()) {
-            auto aquiredAsteroid = asteroidPool.acquire();
-            aquiredAsteroid->setActive(true);
-            aquiredAsteroid->getTransform().center = Vector2(
-                GetRandomValue(100, 700), GetRandomValue(100, 700));
-            manager.registerExternalObject(aquiredAsteroid.get());
-            asteroids.push_back(aquiredAsteroid);
-        }
+        TEMP_refiveAsteroid();
     }
 
     return 0;
