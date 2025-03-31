@@ -6,6 +6,7 @@
 #define COMPONENTS_H
 #include <raylib.h>
 #include <raymath.h>
+#include <stdexcept>
 #include <vector>
 
 namespace components {
@@ -101,12 +102,19 @@ namespace components {
 
     struct ColliderPoly final : Collider {
     private:
-        std::vector<Vector2> vertices_;
+        std::vector<Vector2> offsets_;
         Vector2 center_;
     public:
-        ColliderPoly(const Vector2 center, std::vector<Vector2> vertices):
-        vertices_(std::move(vertices)), center_{center} {}
-        void setCenter(Vector2 center) override;
+        ColliderPoly(const Vector2 center, const std::vector<Vector2>& vertices):
+        center_{center} {
+            if (vertices.empty())
+                throw std::invalid_argument("Empty vertices array");
+
+            for (auto &vertex: vertices) {
+                offsets_.push_back(vertex - center);
+            }
+        }
+        void setCenter(Vector2 center) override { center_ = center; }
 
         Vector2 supportPoint(Vector2 direction) override;
 
@@ -114,6 +122,16 @@ namespace components {
         Rectangle getInnerBox() override;
 
         void rotate(float angle) override;
+
+        std::vector<Vector2> getVertices() {
+            std::vector<Vector2> vertices;
+            for (const auto& offset : offsets_) {
+                vertices.push_back(center_ + offset);
+            }
+            return vertices;
+        }
+
+        [[nodiscard]] Vector2 getCenter() const { return center_; }
     };
 
     class DrawnObject {

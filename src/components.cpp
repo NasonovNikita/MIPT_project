@@ -254,18 +254,10 @@ namespace components {
 #pragma endregion
 
 #pragma region ColliderPoly
-    void ColliderPoly::setCenter(const Vector2 center) {
-        for (auto& vertex : vertices_) {
-            vertex += center - center_;
-        }
-
-        center_ = center;
-    }
-
     Vector2 ColliderPoly::supportPoint(Vector2 direction) {
         float maxDot = -INFINITY;
         Vector2 farthestPoint {0, 0};
-        for (const auto& point : vertices_) {
+        for (const auto& point : getVertices()) {
             if (const float dot = Vector2DotProduct(point, direction);
                 dot > maxDot) {
                 maxDot = dot;
@@ -276,10 +268,9 @@ namespace components {
     }
 
     Rectangle ColliderPoly::getCoveringBox() {
-        float xMin = INFINITY,
-        yMin = INFINITY, xMax = 0, yMax = 0;
+        float xMin = INFINITY, yMin = INFINITY, xMax = 0, yMax = 0;
 
-        for (const auto&[x, y] : vertices_) {
+        for (const auto&[x, y] : getVertices()) {
             xMax = std::max(xMax, x);
             xMin = std::min(xMin, x);
             yMax = std::max(yMax, y);
@@ -290,24 +281,30 @@ namespace components {
     }
 
     Rectangle ColliderPoly::getInnerBox() {
-        float xMin = INFINITY,
-        yMin = INFINITY, xMax = 0, yMax = 0;
-
-        for (const auto&[x, y] : vertices_) {
-            xMax = std::max(xMax, x);
-            xMin = std::min(xMin, x);
-            yMax = std::max(yMax, y);
-            yMin = std::min(yMin, y);
+        if (getVertices().empty()) {
+            return Rectangle{0, 0, 0, 0};
         }
 
-        return Rectangle(xMin + (xMax - xMin) / 4, yMin + (yMax - yMin) / 4,
-                         xMax - (xMax - xMin) / 4, yMax - (yMax - yMin) / 4);
+        // First get the outer bounding box
+        Rectangle outer = getCoveringBox();
+
+        // Calculate inner box as 50% smaller and centered (adjust ratio as needed)
+        const float shrinkRatio = 0.5f; // 50% smaller
+        const float width = outer.width * shrinkRatio;
+        const float height = outer.height * shrinkRatio;
+
+        return Rectangle{
+            outer.x + (outer.width - width) / 2.0f,  // Center horizontally
+            outer.y + (outer.height - height) / 2.0f, // Center vertically
+            width,
+            height
+        };
     }
 
 
     void ColliderPoly::rotate(const float angle) {
         // Early exits
-        if (vertices_.empty() || fabsf(angle) < std::numeric_limits<float>::epsilon()) {
+        if (offsets_.empty() || fabsf(angle) < std::numeric_limits<float>::epsilon()) {
             return;
         }
 
@@ -317,12 +314,15 @@ namespace components {
         const float sin_r = sinf(rad);
 
         // Rotate each vertex
-        for (auto& point : vertices_) {
+        for (auto& offset : offsets_) {
+            auto point = center_ + offset;
             const float dx = point.x - center_.x;
             const float dy = point.y - center_.y;
 
             point.x = center_.x + (dx * cos_r - dy * sin_r);
             point.y = center_.y + (dx * sin_r + dy * cos_r);
+
+            offset = point - center_;
         }
     }
 #pragma endregion

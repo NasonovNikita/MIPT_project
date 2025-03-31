@@ -1,3 +1,4 @@
+#include <iostream>
 #include <game/gameObjects.h>
 #include <core/objectPool.h>
 #include <game/objectManager.h>
@@ -109,6 +110,29 @@ int main() {
         for (auto* drawnObj : manager.getDrawnObjects()) {
             drawnObj->draw();
         }
+
+        auto collider = dynamic_cast<components::ColliderPoly*>(
+            game::game_objects::Player::getInstance()->collider);
+        const auto verticies = collider->getVertices();
+        // std::cout << verticies[0].x << " " << verticies[1].x << " " << verticies[2].x << "\n";
+        DrawTriangleLines(verticies[0], verticies[1], verticies[2], RED);
+
+        auto cBox = collider->getCoveringBox();
+        DrawRectangleLines(cBox.x, cBox.y, cBox.width, cBox.height, BLUE);
+        auto iBox = collider->getInnerBox();
+        DrawRectangleLines(iBox.x, iBox.y, iBox.width, iBox.height, BLUE);
+
+        auto circleCollider = dynamic_cast<components::ColliderCircle*>(asteroids[0].get()->collider);
+        cBox = circleCollider->getCoveringBox();
+        DrawRectangleLines(cBox.x, cBox.y, cBox.width, cBox.height, YELLOW);
+        iBox = circleCollider->getInnerBox();
+        DrawRectangleLines(iBox.x, iBox.y, iBox.width, iBox.height, YELLOW);
+
+
+        // auto diff = game::game_objects::Player::getInstance()->getVertices()[0] - collider->getVertices()[0];
+        // std::cout << diff.x << ", " << diff.y << std::endl;
+
+
         EndDrawing();
 
         // Cleanup

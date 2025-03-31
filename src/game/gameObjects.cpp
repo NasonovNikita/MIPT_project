@@ -169,11 +169,11 @@ namespace game::game_objects {
     void Player::physUpdate(float deltaTime) {
         Unit::physUpdate(deltaTime);
 
-        if (!(IsKeyDown(KEY_UP) or IsKeyDown(KEY_DOWN))) {
-            if (Vector2Length(currentSpeed_) > 0) {
-                currentSpeed_ -= accelerationDirection * acceleration_ * deltaTime;
-            }
-        }
+        // if (!(IsKeyDown(KEY_UP) or IsKeyDown(KEY_DOWN))) {
+        //     if (Vector2Length(currentSpeed_) > 0) {
+        //         currentSpeed_ -= accelerationDirection * acceleration_ * deltaTime;
+        //     }
+        // }
 
         vertices[0] += currentSpeed_ * deltaTime;
         vertices[1] += currentSpeed_ * deltaTime;
@@ -223,7 +223,8 @@ namespace game::game_objects {
     void Player::logicUpdate() {
 
         if (!(IsKeyDown(KEY_UP) or IsKeyDown(KEY_DOWN))) {
-            accelerationDirection = Vector2Negate(Vector2Normalize(currentSpeed_));
+            // accelerationDirection = Vector2Negate(Vector2Normalize(currentSpeed_));
+            acceleration_ = 0;
         }
 
         if (IsKeyDown(KEY_UP)) {
