@@ -15,7 +15,7 @@ namespace game::management {
         ObjectManager() = default;
         ~ObjectManager() = default;
 
-        void RegisterInterfaces(game_objects::GameObject* obj) {
+        void registerInterfaces(game_objects::GameObject* obj) {
             if (const auto drawn = dynamic_cast<game_objects::DrawnGameObject*>(obj)) {
                 drawnObjects_.push_back(drawn);
             }
@@ -29,49 +29,49 @@ namespace game::management {
         std::vector<game_objects::CollidingObject*> collidingObjects_;
     public:
         // Singleton access
-        static ObjectManager& Instance() {
+        static ObjectManager& getInstance() {
             static ObjectManager instance;
             return instance;
         }
 
         // Object creation
         template<typename T, typename... Args>
-        std::shared_ptr<T> CreateObject(Args&&... args) {
+        std::shared_ptr<T> createObject(Args&&... args) {
             static_assert(std::is_base_of_v<game_objects::GameObject, T>,
                           "T must inherit from GameObject");
 
             auto obj = std::make_shared<T>(std::forward<Args>(args)...);
-            RegisterInterfaces(obj.get());
+            registerInterfaces(obj.get());
             ownedObjects_.push_back(obj);
             return obj;
         }
 
         // Object registration (for externally created objects like Player)
-        void RegisterExternalObject(game_objects::GameObject* obj) {
-            RegisterInterfaces(obj);
+        void registerExternalObject(game_objects::GameObject* obj) {
+            registerInterfaces(obj);
         }
 
         // Accessors
-        [[nodiscard]] static const std::list<game_objects::GameObject*>& GetAllObjects() {
+        [[nodiscard]] static const std::list<game_objects::GameObject*>& getAllObjects() {
             return game_objects::GameObject::s_allObjects;
         }
 
-        [[nodiscard]] const std::vector<game_objects::DrawnGameObject*>& GetDrawnObjects() const {
+        [[nodiscard]] const std::vector<game_objects::DrawnGameObject*>& getDrawnObjects() const {
             return drawnObjects_;
         }
 
-        [[nodiscard]] const std::vector<game_objects::CollidingObject*>& GetCollidingObjects() const {
+        [[nodiscard]] const std::vector<game_objects::CollidingObject*>& getCollidingObjects() const {
             return collidingObjects_;
         }
 
         // Cleanup
-        void DestroyAll() {
+        void destroyAll() {
             ownedObjects_.clear(); // Automatically removes from s_allObjects via GameObject destructor
             drawnObjects_.clear();
             collidingObjects_.clear();
         }
 
-        void DestroyInactive() {
+        void destroyInactive() {
             // Phase 1: Mark inactive objects
             std::vector<game_objects::GameObject*> toRemove;
             for (auto& obj : ownedObjects_) {
@@ -81,7 +81,7 @@ namespace game::management {
             }
 
             // Phase 2: Remove from interface lists first
-            auto RemoveFromVector = [&](auto& vec) {
+            auto removeFromVector = [&](auto& vec) {
                 vec.erase(std::remove_if(vec.begin(), vec.end(),
                     [&](auto ptr) {
                         return std::find(toRemove.begin(), toRemove.end(), ptr) != toRemove.end();
@@ -90,8 +90,8 @@ namespace game::management {
                 );
             };
 
-            RemoveFromVector(drawnObjects_);
-            RemoveFromVector(collidingObjects_);
+            removeFromVector(drawnObjects_);
+            removeFromVector(collidingObjects_);
 
             // Phase 3: Finally erase owned objects (will auto-remove from s_allObjects via destructor)
             std::erase_if(ownedObjects_,

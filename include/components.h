@@ -77,17 +77,17 @@ namespace components {
     struct ColliderCircle final : Collider {
     private:
         float radius_;
+        Vector2 center_;
     public:
-        Vector2 center;
 
         explicit ColliderCircle(const Transform2D &tr);
         ColliderCircle(const Vector2 center, const float radius):
-        radius_(radius), center(center) {}
+        radius_(radius), center_(center) {}
 
         void setRadius(float radius);
         void setRadius(const Transform2D &tr);
 
-        void setCenter(const Vector2 center) override { this->center = center; }
+        void setCenter(const Vector2 center) override { this->center_ = center; }
 
         Vector2 supportPoint(Vector2 direction) override;
 

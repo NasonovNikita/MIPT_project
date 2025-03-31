@@ -80,7 +80,7 @@ namespace components {
         direction = Vector2Negate(support);
 
         // GJK loop
-        while (true) {
+        for (int i = 0; i < 100; i++) {
             // Get a new support point
             Vector2 newSupport = supportPoint(direction) - other.supportPoint(
                                      Vector2Negate(direction));
@@ -98,6 +98,8 @@ namespace components {
                 return true;
             }
         }
+
+        return false;
     }
 
     bool Collider::checkCollision(Collider &other) {
@@ -211,7 +213,7 @@ namespace components {
 
 #pragma region ColliderCircle
     ColliderCircle::ColliderCircle(const Transform2D &tr):
-    radius_(0), center(tr.center) { // Set readius(0) for Clang-Tidy to shut up about non itialized member
+    radius_(0), center_(tr.center) { // Set readius(0) for Clang-Tidy to shut up about non itialized member
         setRadius(tr);
     }
 
@@ -232,17 +234,17 @@ namespace components {
 
     Vector2 ColliderCircle::supportPoint(const Vector2 direction) {
         Vector2 normalizedDir = Vector2Normalize(direction);
-        return center + Vector2Scale(normalizedDir, radius_);
+        return center_ + Vector2Scale(normalizedDir, radius_);
     }
 
     Rectangle ColliderCircle::getCoveringBox() {
-        return Rectangle(center.x - radius_, center.y - radius_,
+        return Rectangle(center_.x - radius_, center_.y - radius_,
             2 * radius_, 2 * radius_);
     }
 
     Rectangle ColliderCircle::getInnerBox() {
         const auto sqrt2 = static_cast<float>(sqrt(2));
-        return Rectangle(center.x - radius_ / sqrt2, center.y - radius_ / sqrt2,
+        return Rectangle(center_.x - radius_ / sqrt2, center_.y - radius_ / sqrt2,
                          sqrt2 * radius_, sqrt2 * radius_);
     }
 
@@ -253,7 +255,7 @@ namespace components {
 
 #pragma region ColliderPoly
     void ColliderPoly::setCenter(const Vector2 center) {
-        for (auto vertex : vertices_) {
+        for (auto& vertex : vertices_) {
             vertex += center - center_;
         }
 
@@ -304,11 +306,23 @@ namespace components {
 
 
     void ColliderPoly::rotate(const float angle) {
-        const float rad = angle * PI / 180.0f;
+        // Early exits
+        if (vertices_.empty() || fabsf(angle) < std::numeric_limits<float>::epsilon()) {
+            return;
+        }
 
-        for (auto&point : vertices_) {
-            const Vector2 diff = point - center_;
-            point = center_ + Vector2Rotate(diff, rad);
+        // Convert angle and precompute trig
+        const float rad = angle;
+        const float cos_r = cosf(rad);
+        const float sin_r = sinf(rad);
+
+        // Rotate each vertex
+        for (auto& point : vertices_) {
+            const float dx = point.x - center_.x;
+            const float dy = point.y - center_.y;
+
+            point.x = center_.x + (dx * cos_r - dy * sin_r);
+            point.y = center_.y + (dx * sin_r + dy * cos_r);
         }
     }
 #pragma endregion

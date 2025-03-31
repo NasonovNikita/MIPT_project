@@ -13,7 +13,7 @@ using game::game_objects::GameObject;
 static std::vector<std::shared_ptr<Asteroid>> asteroids;
 static ObjectPool<Asteroid> asteroidPool;
 
-auto& manager = game::management::ObjectManager::Instance();
+auto& manager = game::management::ObjectManager::getInstance();
 
 void CleanupAsteroidList() {
     for (const auto& asteroid : asteroids) {
@@ -58,7 +58,7 @@ void updatePhysics() {
         gameObject->physUpdate(deltaTimePhys);
     }
 
-    const auto& collidingObjects = manager.GetCollidingObjects();
+    const auto& collidingObjects = manager.getCollidingObjects();
     for (int i = 0; i < collidingObjects.size(); i++) {
         if (!collidingObjects[i]->isActive()) continue;
 
@@ -80,10 +80,10 @@ int main() {
     // Player (singleton pattern remains)
     game::game_objects::Player::SpawnPlayer(
         components::Transform2D(100, 400, 50, 50), 100, 300, 10);
-    manager.RegisterExternalObject(game::game_objects::Player::getInstance());
+    manager.registerExternalObject(game::game_objects::Player::getInstance());
 
     // Create objects through manager
-    auto newAst = manager.CreateObject<Asteroid>(
+    auto newAst = manager.createObject<Asteroid>(
         components::Transform2D(200, 200, 50, 50), 10, 50, 0);
     asteroids.push_back(newAst);
 
@@ -98,7 +98,7 @@ int main() {
         }
 
         // Logic
-        for (const auto& gameObject : game::management::ObjectManager::GetAllObjects()) {
+        for (const auto& gameObject : game::management::ObjectManager::getAllObjects()) {
             if (!gameObject->isActive()) continue;
             gameObject->logicUpdate();
         }
@@ -106,19 +106,19 @@ int main() {
         // Rendering
         BeginDrawing();
         ClearBackground(RAYWHITE);
-        for (auto* drawnObj : manager.GetDrawnObjects()) {
+        for (auto* drawnObj : manager.getDrawnObjects()) {
             drawnObj->draw();
         }
         EndDrawing();
 
         // Cleanup
-        manager.DestroyInactive();
+        manager.destroyInactive();
         CleanupAsteroidList();
 
         if (asteroids.empty()) {
             auto aquiredAsteroid = asteroidPool.acquire();
             aquiredAsteroid->setActive(true);
-            manager.RegisterExternalObject(aquiredAsteroid.get());
+            manager.registerExternalObject(aquiredAsteroid.get());
             asteroids.push_back(aquiredAsteroid);
         }
     }

@@ -141,13 +141,16 @@ namespace game::game_objects {
         if (other == this) return;
         const auto otherAsteroid = dynamic_cast<Asteroid*>(other);
 
+        if (otherAsteroid) {
+            const Vector2 collisionNormal = collider->getCollisionNormal(*other->collider);
+            bounceFromOther(*otherAsteroid, collisionNormal);
 
-        if (!otherAsteroid) return;
+            resolveCollision(*other);
+        }
 
-        const Vector2 collisionNormal = collider->getCollisionNormal(*other->collider);
-        bounceFromOther(*otherAsteroid, collisionNormal);
-
-        resolveCollision(*other);
+        if (other == Player::getInstance()) {
+            takeDamage(5);
+        }
     }
 
     std::vector<Vector2> Player::getVertices() {
@@ -242,7 +245,7 @@ namespace game::game_objects {
         }
 
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-            management::ObjectManager::Instance().CreateObject<Bullet>(
+            management::ObjectManager::getInstance().createObject<Bullet>(
         components::Transform2D(vertices[2].x, vertices[2].y, 10, 10), 300, angle_);
         }
     }
