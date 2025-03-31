@@ -226,8 +226,10 @@ namespace game::game_objects {
             // accelerationDirection = Vector2Negate(Vector2Normalize(currentSpeed_));
             acceleration_ = 0;
         }
-        if (!(IsKeyDown(KEY_LEFT)) or IsKeyDown(KEY_RIGHT)) {
+        if (!(IsKeyDown(KEY_LEFT) or IsKeyDown(KEY_RIGHT))) {
             rotationAcceleration_ = 0;
+            if (fabs(currentRotationSpeed_) <= 1)
+                currentRotationSpeed_ = 0;
         }
 
         if (IsKeyDown(KEY_UP)) {
