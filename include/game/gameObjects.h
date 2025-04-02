@@ -101,6 +101,10 @@ namespace game::game_objects {
         explicit MovingObject(const float maxSpeed):
         maxSpeed_(maxSpeed) {}
 
+        [[nodiscard]] float getSpeedModule() const {
+            return sqrt(currentSpeed_.x * currentSpeed_.x + currentSpeed_.y * currentSpeed_.y);
+        }
+
         /// Change direction of movement as if it bounced from surface with given normal
         void bounceByNormal(Vector2 normal);
 

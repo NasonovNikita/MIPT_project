@@ -169,41 +169,19 @@ namespace game::game_objects {
     void Player::physUpdate(float deltaTime) {
         Unit::physUpdate(deltaTime);
 
-        // if (!(IsKeyDown(KEY_UP) or IsKeyDown(KEY_DOWN))) {
-        //     if (Vector2Length(currentSpeed_) > 0) {
-        //         currentSpeed_ -= accelerationDirection * acceleration_ * deltaTime;
-        //     }
-        // }
-
         vertices[0] += currentSpeed_ * deltaTime;
         vertices[1] += currentSpeed_ * deltaTime;
         vertices[2] += currentSpeed_ * deltaTime;
 
-        if (IsKeyDown(KEY_RIGHT) or IsKeyDown(KEY_LEFT)) {
-            currentRotationSpeed_ += rotationAcceleration_ * deltaTime;
-            if (currentRotationSpeed_ > maxRotationSpeed_) {
-                currentRotationSpeed_ = maxRotationSpeed_;
-            }
-            if (-currentRotationSpeed_ > maxRotationSpeed_) {
-                currentRotationSpeed_ = -maxRotationSpeed_;
-            }
+        currentRotationSpeed_ += rotationAcceleration_ * deltaTime;
+        if (currentRotationSpeed_ > maxRotationSpeed_) {
+            currentRotationSpeed_ = maxRotationSpeed_;
+        }
+        if (-currentRotationSpeed_ > maxRotationSpeed_) {
+            currentRotationSpeed_ = -maxRotationSpeed_;
         }
 
-        else {
-            if (std::abs(currentRotationSpeed_) - std::abs(rotationAcceleration_) * deltaTime > 0) {
-                if (currentRotationSpeed_ * rotationAcceleration_ > 0) {
-                    currentRotationSpeed_ -= rotationAcceleration_ * deltaTime;
-                }
-                else {
-                    currentRotationSpeed_ += rotationAcceleration_ * deltaTime;
-                }
-            }
-            else {
-                currentRotationSpeed_ = 0;
-            }
-        }
-
-        auto dAngle_ = currentRotationSpeed_ * deltaTime;
+        const auto dAngle_ = currentRotationSpeed_ * deltaTime;
 
         angle_ += dAngle_;
         if (angle_ > 180) angle_ -= 180;
@@ -221,33 +199,35 @@ namespace game::game_objects {
     }
 
     void Player::logicUpdate() {
-
-        if (!(IsKeyDown(KEY_UP) or IsKeyDown(KEY_DOWN))) {
-            // accelerationDirection = Vector2Negate(Vector2Normalize(currentSpeed_));
+        if (!(IsKeyDown(KEY_UP) or IsKeyDown(KEY_W) or IsKeyDown(KEY_DOWN) or IsKeyDown(KEY_S))) {
             acceleration_ = 0;
+            if (fabs(getSpeedModule()) <= 50) {
+                currentSpeed_ = {0, 0};
+            }
         }
-        if (!(IsKeyDown(KEY_LEFT) or IsKeyDown(KEY_RIGHT))) {
+
+        if (!(IsKeyDown(KEY_LEFT) or IsKeyDown(KEY_A) or IsKeyDown(KEY_RIGHT) or IsKeyDown(KEY_D))) {
             rotationAcceleration_ = 0;
             if (fabs(currentRotationSpeed_) <= 1)
                 currentRotationSpeed_ = 0;
         }
 
-        if (IsKeyDown(KEY_UP)) {
+        if (IsKeyDown(KEY_UP) or IsKeyDown(KEY_W)) {
             accelerationDirection = Vector2Normalize(vertices[2] - transform_.center);
             acceleration_ = 500;
         }
 
-        if (IsKeyDown(KEY_DOWN)) {
+        if (IsKeyDown(KEY_DOWN) or IsKeyDown(KEY_S)) {
             accelerationDirection = Vector2Normalize(vertices[2] - transform_.center);
             acceleration_ = -500;
-        };
-
-        if (IsKeyDown(KEY_RIGHT)) {
-            rotationAcceleration_ = 20;
         }
 
-        if (IsKeyDown(KEY_LEFT)) {
-            rotationAcceleration_ = -20;
+        if (IsKeyDown(KEY_RIGHT) or IsKeyDown(KEY_D)) {
+            rotationAcceleration_ = 10;
+        }
+
+        if (IsKeyDown(KEY_LEFT) or IsKeyDown(KEY_A)) {
+            rotationAcceleration_ = -10;
         }
 
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
