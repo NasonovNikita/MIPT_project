@@ -2,17 +2,14 @@
 // Created by nosokvkokose on 21.02.25.
 //
 
-#include <algorithm>
-#include <iostream>
-#include <ranges>
-#include <stdexcept>
-#include <game/gameObjects.h>
-#include <game/objectManager.h>
+#include "game/gameObjects.h"
+
+
+#include "game/entities/units.h"
 
 
 namespace game::game_objects {
 #pragma region GameObject
-
     int generateId() {
         int id = GetRandomValue(0, std::numeric_limits<int>::max());
         while (GameObject::s_existing_ids.contains(id))
@@ -51,7 +48,6 @@ namespace game::game_objects {
 
         return copiedGameObject;
     }
-
 #pragma endregion
 
     CollidingObject::~CollidingObject() {
@@ -112,146 +108,5 @@ namespace game::game_objects {
         }
 
         transform_.center += currentSpeed_ * deltaTime;
-    }
-
-    void Unit::die() {
-        setActive(false);
-    }
-
-    void Unit::takeDamage(const int value) {
-        hp_.ChangeValue(-value);
-
-        if (hp_.getValue() == 0) {
-            die();
-        }
-    }
-
-    void Asteroid::draw() {
-        if (!isActive()) return;
-
-        DrawCircle(static_cast<int>(transform_.center.x),
-                   static_cast<int>(transform_.center.y),
-                   transform_.scaledSize().x / 2, GRAY);
-        DrawCircleLines(static_cast<int>(transform_.center.x),
-                   static_cast<int>(transform_.center.y),
-                   transform_.scaledSize().x / 2, BLACK);
-    }
-
-    void Asteroid::onCollided(CollidingObject *other) {
-        if (other == this) return;
-        const auto otherAsteroid = dynamic_cast<Asteroid*>(other);
-
-        if (otherAsteroid) {
-            const Vector2 collisionNormal = collider->getCollisionNormal(*other->collider);
-            bounceFromOther(*otherAsteroid, collisionNormal);
-
-            resolveCollision(*other);
-        }
-
-        if (other == Player::getInstance()) {
-            takeDamage(5);
-        }
-    }
-
-    std::vector<Vector2> Player::getVertices() {
-        return vertices;
-    }
-
-
-    Player *Player::s_instance;
-
-    void Player::draw() {
-        DrawTriangle(vertices[0], vertices[1], vertices[2], GREEN);
-
-        DrawTriangleLines(vertices[0], vertices[1], vertices[2], BLUE);
-    }
-
-    void Player::physUpdate(float deltaTime) {
-        Unit::physUpdate(deltaTime);
-
-        vertices[0] += currentSpeed_ * deltaTime;
-        vertices[1] += currentSpeed_ * deltaTime;
-        vertices[2] += currentSpeed_ * deltaTime;
-
-        currentRotationSpeed_ += rotationAcceleration_ * deltaTime;
-        if (currentRotationSpeed_ > maxRotationSpeed_) {
-            currentRotationSpeed_ = maxRotationSpeed_;
-        }
-        if (-currentRotationSpeed_ > maxRotationSpeed_) {
-            currentRotationSpeed_ = -maxRotationSpeed_;
-        }
-
-        const auto dAngle_ = currentRotationSpeed_ * deltaTime;
-
-        angle_ += dAngle_;
-        if (angle_ > 180) angle_ -= 180;
-        if (angle_ < -180) angle_ += 180;
-
-        transform_.angle = angle_;
-
-        vertices = { transform_.center + Vector2Rotate(vertices[0] - transform_.center, dAngle_),
-                         transform_.center + Vector2Rotate(vertices[1] - transform_.center, dAngle_),
-                         transform_.center + Vector2Rotate(vertices[2] - transform_.center, dAngle_) };
-
-
-
-        collider->rotate(dAngle_);
-    }
-
-    void Player::logicUpdate() {
-        if (!(IsKeyDown(KEY_UP) or IsKeyDown(KEY_W) or IsKeyDown(KEY_DOWN) or IsKeyDown(KEY_S))) {
-            acceleration_ = 0;
-            if (fabs(getSpeedModule()) <= 50) {
-                currentSpeed_ = {0, 0};
-            }
-        }
-
-        if (!(IsKeyDown(KEY_LEFT) or IsKeyDown(KEY_A) or IsKeyDown(KEY_RIGHT) or IsKeyDown(KEY_D))) {
-            rotationAcceleration_ = 0;
-            if (fabs(currentRotationSpeed_) <= 1)
-                currentRotationSpeed_ = 0;
-        }
-
-        if (IsKeyDown(KEY_UP) or IsKeyDown(KEY_W)) {
-            accelerationDirection = Vector2Normalize(vertices[2] - transform_.center);
-            acceleration_ = 500;
-        }
-
-        if (IsKeyDown(KEY_DOWN) or IsKeyDown(KEY_S)) {
-            accelerationDirection = Vector2Normalize(vertices[2] - transform_.center);
-            acceleration_ = -500;
-        }
-
-        if (IsKeyDown(KEY_RIGHT) or IsKeyDown(KEY_D)) {
-            rotationAcceleration_ = 10;
-        }
-
-        if (IsKeyDown(KEY_LEFT) or IsKeyDown(KEY_A)) {
-            rotationAcceleration_ = -10;
-        }
-
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-            management::ObjectManager::getInstance().createObject<Bullet>(
-        components::Transform2D(vertices[2].x, vertices[2].y, 10, 10), 300, angle_);
-        }
-    }
-
-    void Bullet::draw() {
-        if (!isActive()) return;
-
-        DrawCircle(static_cast<int>(transform_.center.x),
-                   static_cast<int>(transform_.center.y),
-                   transform_.scaledSize().x / 2, RED);
-        DrawCircleLines(static_cast<int>(transform_.center.x),
-                   static_cast<int>(transform_.center.y),
-                   transform_.scaledSize().x / 2, YELLOW);
-    }
-
-    void Bullet::onCollided(CollidingObject *other) {
-        const auto asteroid = dynamic_cast<Asteroid*>(other);
-
-        if (!asteroid) return;
-        asteroid->takeDamage(10);
-        setActive(false);
     }
 } // game

@@ -8,12 +8,13 @@
 #include <algorithm>
 #include <vector>
 #include <memory>
-#include <game/gameObjects.h>
+
+#include "gameObjects.h"
 
 namespace game::management {
-    class ObjectManager {
-        ObjectManager() = default;
-        ~ObjectManager() = default;
+    class GameObjectManager {
+        GameObjectManager() = default;
+        ~GameObjectManager() = default;
 
         void registerInterfaces(game_objects::GameObject* obj) {
             if (const auto drawn = dynamic_cast<game_objects::DrawnGameObject*>(obj)) {
@@ -29,8 +30,8 @@ namespace game::management {
         std::vector<game_objects::CollidingObject*> collidingObjects_;
     public:
         // Singleton access
-        static ObjectManager& getInstance() {
-            static ObjectManager instance;
+        static GameObjectManager& getInstance() {
+            static GameObjectManager instance;
             return instance;
         }
 
@@ -99,8 +100,8 @@ namespace game::management {
         }
 
         // Prevent copying
-        ObjectManager(const ObjectManager&) = delete;
-        void operator=(const ObjectManager&) = delete;
+        GameObjectManager(const GameObjectManager&) = delete;
+        void operator=(const GameObjectManager&) = delete;
     };
 }
 

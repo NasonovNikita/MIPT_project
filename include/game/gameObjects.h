@@ -4,13 +4,10 @@
 
 #ifndef GAMEOBJECTS_H
 #define GAMEOBJECTS_H
-
 #include <list>
-#include <raylib.h>
 #include <unordered_set>
-#include <vector>
-#include <game/stats.h>
-#include <components.h>
+
+#include "components.h"
 
 
 namespace game::game_objects {
@@ -116,101 +113,6 @@ namespace game::game_objects {
     class DrawnGameObject: public components::DrawnObject, public virtual GameObject {
     public:
         DrawnGameObject() {}
-    };
-
-    class Unit : public CollidingObject, public DrawnGameObject, public MovingObject {
-        stats::Stat hp_ {0};
-    protected:
-
-        void die();
-    public:
-
-        explicit Unit(const int hp, const float maxSpeed):
-        MovingObject(maxSpeed), hp_(hp) {}
-
-        void takeDamage(int value);
-
-        void forceDie() { die(); }
-
-        void physUpdate(const float deltaTime) override {
-            MovingObject::physUpdate(deltaTime);
-            CollidingObject::physUpdate(deltaTime);
-        }
-    };
-
-
-    class Asteroid final : public Unit {
-    public:
-        Asteroid(const components::Transform2D &tr, const int hp, const float maxSpeed, const float currentSpeed=-1):
-        GameObject(tr), Unit(hp, maxSpeed) {
-            if (abs(currentSpeed + 1) < 0.01f)
-                currentSpeed_ = Vector2Normalize(currentSpeed_) * maxSpeed;
-            else currentSpeed_ = Vector2Normalize(currentSpeed_) * currentSpeed;
-            
-            collider = new components::ColliderCircle(tr);
-        }
-
-        void setCenter(const float x, const float y) {
-            transform_.center = Vector2(x, y);
-            updateCollider();
-        }
-
-        void setDirectionOfSpeed(Vector2 const sp) {
-            currentSpeed_ = sp * Vector2Length(currentSpeed_);
-        }
-
-        void draw() override;
-
-        void onCollided(CollidingObject *other) override;
-    };
-
-
-    class Player final : public Unit {
-        float angle_ = 0;
-        float maxRotationSpeed_;
-        float currentRotationSpeed_ = 0;
-        float rotationAcceleration_ = 0;
-        std::vector<Vector2> vertices = { Vector2 (0, 0), Vector2 (0, 0), Vector2 (0, 0)};
-        static Player *s_instance;
-
-        explicit Player(const components::Transform2D &tr, const int hp,
-            const float maxSpeed, const float maxRotationSpeed):
-        GameObject(tr), Unit(hp, maxSpeed),
-        maxRotationSpeed_(maxRotationSpeed) {
-            vertices = { tr.corner(), tr.corner() + Vector2 {0, tr.scaledSize().y}, tr.center + Vector2 {tr.scaledSize().x / 2, 0}};
-            collider = new components::ColliderPoly(tr.center, vertices);
-        }
-
-    public:
-        static Player *getInstance() { return s_instance; }
-
-        static Player* SpawnPlayer(const components::Transform2D &tr, const int hp,
-            const float maxSpeed, const float maxRotationSpeed) {
-            s_instance = new Player(tr, hp, maxSpeed, maxRotationSpeed);
-            return s_instance;
-        }
-
-        std::vector<Vector2> getVertices();
-
-        void draw() override;
-        void physUpdate(float deltaTime) override;
-        void logicUpdate() override;
-    };
-
-    class Bullet final : public CollidingObject, public MovingObject, public DrawnGameObject {
-    public:
-        Bullet(const components::Transform2D &tr, const float maxSpeed, const float angle = 0):
-        GameObject(tr), CollidingObject(new components::ColliderCircle(tr)),
-        MovingObject(maxSpeed) {
-            currentSpeed_ = {maxSpeed * cos(angle), maxSpeed * sin(angle)};
-        }
-
-        void draw() override;
-        void physUpdate(const float deltaTime) override {
-            CollidingObject::physUpdate(deltaTime);
-            MovingObject::physUpdate(deltaTime);
-        }
-        void onCollided(CollidingObject *other) override;
     };
 } // game
 

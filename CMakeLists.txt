@@ -4,9 +4,11 @@ project(game)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(game
-        src/components.cpp
+        src/game/entities/player.cpp
+        src/game/entities/units.cpp
         src/game/gameObjects.cpp
         src/game/stats.cpp
+        src/components.cpp
         src/main.cpp)
 include_directories(include)
 

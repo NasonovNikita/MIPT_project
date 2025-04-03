@@ -1,7 +1,10 @@
 #include <iostream>
-#include <game/gameObjects.h>
-#include <core/objectPool.h>
-#include <game/objectManager.h>
+
+#include "core/objectPool.h"
+#include "game/gameObjects.h"
+#include "game/gameObjectManager.h"
+#include "game/entities/player.h"
+#include "game/entities/units.h"
 
 constexpr int screenWidth = 1040;
 constexpr int screenHeight = 1040;
@@ -14,7 +17,7 @@ using game::game_objects::GameObject;
 static std::vector<std::shared_ptr<Asteroid>> asteroids;
 static ObjectPool<Asteroid> asteroidPool;
 
-auto& manager = game::management::ObjectManager::getInstance();
+auto& manager = game::management::GameObjectManager::getInstance();
 
 #pragma region SupportFunctions
 void CleanupAsteroidList() {
@@ -75,9 +78,9 @@ void updatePhysics() {
     }
 }
 
-void TEMP_refiveAsteroid() {
+void TEMP_reviveAsteroid() {
     if (asteroids.empty()) {
-        auto acquiredAsteroid = asteroidPool.acquire();
+        const auto acquiredAsteroid = asteroidPool.acquire();
         acquiredAsteroid->setActive(true);
         acquiredAsteroid->getTransform().center = Vector2(
             GetRandomValue(100, 700), GetRandomValue(100, 700));
@@ -98,7 +101,7 @@ int main() {
     manager.registerExternalObject(game::game_objects::Player::getInstance());
 
     // Create objects through manager
-    auto newAst = manager.createObject<Asteroid>(
+    const auto newAst = manager.createObject<Asteroid>(
         components::Transform2D(200, 200, 50, 50), 10, 50, 0);
     asteroids.push_back(newAst);
 
@@ -113,7 +116,7 @@ int main() {
         }
 
         // Logic
-        for (const auto& gameObject : game::management::ObjectManager::getAllObjects()) {
+        for (const auto& gameObject : game::management::GameObjectManager::getAllObjects()) {
             if (!gameObject->isActive()) continue;
             gameObject->logicUpdate();
         }
@@ -131,7 +134,7 @@ int main() {
         // Cleanup
         manager.destroyInactive();
         CleanupAsteroidList();
-        TEMP_refiveAsteroid();
+        TEMP_reviveAsteroid();
     }
 
     return 0;

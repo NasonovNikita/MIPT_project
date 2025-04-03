@@ -5,9 +5,10 @@
 #ifndef COMPONENTS_H
 #define COMPONENTS_H
 #include <raylib.h>
-#include <raymath.h>
 #include <stdexcept>
 #include <vector>
+
+#include "raymath.h"
 
 namespace components {
     /// Info about position and sizes
