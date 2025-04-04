@@ -13,23 +13,31 @@
 
 namespace game::game_objects {
     class Player final : public Unit {
+        float maxSpeedDashless_;
         float angle_ = 0;
         float maxRotationSpeed_;
         float currentRotationSpeed_ = 0;
         float rotationAcceleration_ = 0;
+
         std::vector<Vector2> vertices = { Vector2 (0, 0), Vector2 (0, 0), Vector2 (0, 0)};
         static Player *s_instance;
+
+        float dashingTime_ = 0;
+        float invincibilityTime_ = 0;
 
         explicit Player(const components::Transform2D &tr, const int hp,
             const float maxSpeed, const float maxRotationSpeed):
         GameObject(tr), Unit(hp, maxSpeed),
         maxRotationSpeed_(maxRotationSpeed) {
+            maxSpeedDashless_ = maxSpeed;
             vertices = { tr.corner(), tr.corner() + Vector2 {0, tr.scaledSize().y}, tr.center + Vector2 {tr.scaledSize().x / 2, 0}};
             collider = new components::ColliderPoly(tr.center, vertices);
         }
 
     public:
-        static Player *getInstance() { return s_instance; }
+        static Player *getInstance() {
+            return s_instance;
+        }
 
         static Player* SpawnPlayer(const components::Transform2D &tr, const int hp,
             const float maxSpeed, const float maxRotationSpeed) {
@@ -37,11 +45,21 @@ namespace game::game_objects {
             return s_instance;
         }
 
+        [[nodiscard]] bool isInvincible() const { return invincibilityTime_ > 0; }
+        [[nodiscard]] bool isDashing() const { return dashingTime_ > 0; }
+
         std::vector<Vector2> getVertices();
 
-        void draw() override;
+        void draw() override {
+            DrawTriangle(vertices[0], vertices[1], vertices[2], GREEN);
+
+            DrawTriangleLines(vertices[0], vertices[1], vertices[2], BLUE);
+        }
         void physUpdate(float deltaTime) override;
         void logicUpdate() override;
+        void takeDamage(int value) override;
+
+        void dash(Vector2 direction, float speed);
     };
 }
 

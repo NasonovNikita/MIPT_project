@@ -11,6 +11,8 @@
 #include "game/entities/bullet.h"
 #include "game/entities/player.h"
 
+#include <iostream>
+
 namespace game::game_objects {
 
 
@@ -18,16 +20,9 @@ namespace game::game_objects {
         return vertices;
     }
 
-
     Player *Player::s_instance;
 
-    void Player::draw() {
-        DrawTriangle(vertices[0], vertices[1], vertices[2], GREEN);
-
-        DrawTriangleLines(vertices[0], vertices[1], vertices[2], BLUE);
-    }
-
-    void Player::physUpdate(float deltaTime) {
+    void Player::physUpdate(const float deltaTime) {
         Unit::physUpdate(deltaTime);
 
         vertices[0] += currentSpeed_ * deltaTime;
@@ -42,58 +37,132 @@ namespace game::game_objects {
             currentRotationSpeed_ = -maxRotationSpeed_;
         }
 
-        const auto dAngle_ = currentRotationSpeed_ * deltaTime;
+        const auto dAngle = currentRotationSpeed_ * deltaTime;
 
-        angle_ += dAngle_;
+        angle_ += dAngle;
         if (angle_ > 180) angle_ -= 180;
         if (angle_ < -180) angle_ += 180;
 
         transform_.angle = angle_;
 
-        vertices = { transform_.center + Vector2Rotate(vertices[0] - transform_.center, dAngle_),
-                         transform_.center + Vector2Rotate(vertices[1] - transform_.center, dAngle_),
-                         transform_.center + Vector2Rotate(vertices[2] - transform_.center, dAngle_) };
+        vertices = { transform_.center + Vector2Rotate(vertices[0] - transform_.center, dAngle),
+                         transform_.center + Vector2Rotate(vertices[1] - transform_.center, dAngle),
+                         transform_.center + Vector2Rotate(vertices[2] - transform_.center, dAngle) };
 
 
 
-        collider->rotate(dAngle_);
+        collider->rotate(dAngle);
     }
 
     void Player::logicUpdate() {
-        if (!(IsKeyDown(KEY_UP) or IsKeyDown(KEY_W) or IsKeyDown(KEY_DOWN) or IsKeyDown(KEY_S))) {
+    #pragma region movement
+        auto getNoseDirection = [this] {
+            return Vector2Normalize(vertices[2] - transform_.center);
+        };
+
+        constexpr int c_acceleration = 500;
+        constexpr int c_rotation = 10;
+
+        auto isPressedUp = [] { return IsKeyDown(KEY_UP) or IsKeyDown(KEY_W);};
+        auto isPressedDown = [] { return IsKeyDown(KEY_DOWN) or IsKeyDown(KEY_S); };
+        auto isPressedLeft = [] { return IsKeyDown(KEY_LEFT) or IsKeyDown(KEY_A); };
+        auto isPressedRight = [] { return IsKeyDown(KEY_RIGHT) or IsKeyDown(KEY_D); };
+
+        if (!(isPressedUp() or isPressedDown())) {
             acceleration_ = 0;
             if (fabs(getSpeedModule()) <= 50) {
                 currentSpeed_ = {0, 0};
             }
         }
 
-        if (!(IsKeyDown(KEY_LEFT) or IsKeyDown(KEY_A) or IsKeyDown(KEY_RIGHT) or IsKeyDown(KEY_D))) {
+        if (!(isPressedLeft() or isPressedRight())) {
             rotationAcceleration_ = 0;
             if (fabs(currentRotationSpeed_) <= 1)
                 currentRotationSpeed_ = 0;
         }
 
-        if (IsKeyDown(KEY_UP) or IsKeyDown(KEY_W)) {
+        if (isPressedUp()) {
+            accelerationDirection = getNoseDirection();
+            acceleration_ = c_acceleration;
+        }
+
+        if (isPressedDown()) {
             accelerationDirection = Vector2Normalize(vertices[2] - transform_.center);
-            acceleration_ = 500;
+            acceleration_ = -c_acceleration;
         }
 
-        if (IsKeyDown(KEY_DOWN) or IsKeyDown(KEY_S)) {
-            accelerationDirection = Vector2Normalize(vertices[2] - transform_.center);
-            acceleration_ = -500;
+        if (isPressedRight()) {
+            rotationAcceleration_ = c_rotation;
         }
 
-        if (IsKeyDown(KEY_RIGHT) or IsKeyDown(KEY_D)) {
-            rotationAcceleration_ = 10;
+        if (isPressedLeft()) {
+            rotationAcceleration_ = -c_rotation;
         }
 
-        if (IsKeyDown(KEY_LEFT) or IsKeyDown(KEY_A)) {
-            rotationAcceleration_ = -10;
+        if (IsKeyDown(KEY_LEFT_CONTROL) or IsKeyDown(KEY_RIGHT_CONTROL)) {
+            accelerationDirection = Vector2Normalize(Vector2Negate(currentSpeed_));
+            acceleration_ = c_acceleration;
         }
+    #pragma endregion
 
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        // Shoot
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) or IsKeyPressed(KEY_J)) {
             management::GameObjectManager::getInstance().createObject<Bullet>(
         components::Transform2D(vertices[2].x, vertices[2].y, 10, 10), 300, angle_);
         }
+
+        // Dash
+        if (IsKeyPressed(KEY_SPACE)) {
+            Vector2 direction = {0, 0};
+            bool hasInput = false;
+            const Vector2 noseDir = getNoseDirection(); // Store once to avoid repeated calls
+
+            if (isPressedUp() && !isPressedDown()) {
+                direction = Vector2Add(direction, noseDir);
+                hasInput = true;
+            }
+            if (isPressedDown() && !isPressedUp()) {
+                direction = Vector2Subtract(direction, noseDir);
+                hasInput = true;
+            }
+            if (isPressedLeft() && !isPressedRight()) {
+                const Vector2 leftDir = {noseDir.y, -noseDir.x};  // -90 degrees rotation
+                direction = Vector2Add(direction, leftDir);
+                hasInput = true;
+            }
+            if (isPressedRight() && !isPressedLeft()) {
+                const Vector2 rightDir = {-noseDir.y, noseDir.x};  // 90 degrees rotation
+                direction = Vector2Add(direction, rightDir);
+                hasInput = true;
+            }
+
+            if (!hasInput)
+                direction = noseDir;
+
+            dash(Vector2Normalize(direction), maxSpeed_ * 2);
+        }
+
+        // Timers
+        if (invincibilityTime_ > 0)
+            invincibilityTime_ -= GetFrameTime();
+        if (dashingTime_ > 0) {
+            dashingTime_ -= GetFrameTime();
+        }
+        else {
+            maxSpeed_ = maxSpeedDashless_;
+        }
+    }
+
+    void Player::takeDamage(const int value) {
+        if (isInvincible()) return;
+
+        Unit::takeDamage(value);
+    }
+
+    void Player::dash(const Vector2 direction, const float speed) {
+        currentSpeed_ = direction * speed;
+        maxSpeed_ = speed;
+        dashingTime_ = 1;
+        invincibilityTime_ = 1;
     }
 }

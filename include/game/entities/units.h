@@ -17,7 +17,7 @@ namespace game::game_objects {
         explicit Unit(const int hp, const float maxSpeed):
         MovingObject(maxSpeed), hp_(hp) {}
 
-        void takeDamage(int value);
+        void virtual takeDamage(int value);
 
         void forceDie() { die(); }
 
