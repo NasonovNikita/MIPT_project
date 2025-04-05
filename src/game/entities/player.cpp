@@ -34,6 +34,7 @@ namespace game::game_objects {
         if (rotationAcceleration_ == 0 and currentRotationSpeed_ != 0) {
             rotationAcceleration_  = -c_rotation * (currentRotationSpeed_ > 0 ? 1 : -1);
         }
+
         currentRotationSpeed_ += rotationAcceleration_ * deltaTime;
         if (currentRotationSpeed_ > maxRotationSpeed_) {
             currentRotationSpeed_ = maxRotationSpeed_;
@@ -41,7 +42,6 @@ namespace game::game_objects {
         if (-currentRotationSpeed_ > maxRotationSpeed_) {
             currentRotationSpeed_ = -maxRotationSpeed_;
         }
-
 
         const auto dAngle = currentRotationSpeed_ * deltaTime;
 
@@ -66,7 +66,7 @@ namespace game::game_objects {
             return Vector2Normalize(vertices[2] - transform_.center);
         };
 
-        auto isPressedUp = [] { return IsKeyDown(KEY_UP) or IsKeyDown(KEY_W);};
+        auto isPressedUp = [] { return IsKeyDown(KEY_UP) or IsKeyDown(KEY_W); };
         auto isPressedDown = [] { return IsKeyDown(KEY_DOWN) or IsKeyDown(KEY_S); };
         auto isPressedLeft = [] { return IsKeyDown(KEY_LEFT) or IsKeyDown(KEY_A); };
         auto isPressedRight = [] { return IsKeyDown(KEY_RIGHT) or IsKeyDown(KEY_D); };
@@ -143,7 +143,7 @@ namespace game::game_objects {
             if (!hasInput)
                 direction = noseDir;
 
-            dash(Vector2Normalize(direction), maxSpeed_ * 2);
+            dash(Vector2Normalize(direction), maxSpeed_ * 1.5);
         }
 
         // Timers
