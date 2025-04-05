@@ -31,7 +31,7 @@ namespace game::game_objects {
         vertices[1] += currentSpeed_ * deltaTime;
         vertices[2] += currentSpeed_ * deltaTime;
 
-        if (rotationAcceleration_ == 0) {
+        if (rotationAcceleration_ == 0 and currentRotationSpeed_ != 0) {
             rotationAcceleration_  = -c_rotation * (currentRotationSpeed_ > 0 ? 1 : -1);
         }
         currentRotationSpeed_ += rotationAcceleration_ * deltaTime;
