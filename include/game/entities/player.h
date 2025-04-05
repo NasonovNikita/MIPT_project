@@ -27,6 +27,8 @@ namespace game::game_objects {
         float dashingTime_ = 0;
         float invincibilityTime_ = 0;
 
+        components::GameCamera* gameCamera;
+
         explicit Player(const components::Transform2D &tr, const int hp,
             const float maxSpeed, const float maxRotationSpeed):
         GameObject(tr), Unit(hp, maxSpeed),
@@ -59,11 +61,13 @@ namespace game::game_objects {
 
             DrawTriangleLines(vertices[0], vertices[1], vertices[2], BLUE);
         }
+        void SetCamera(components::GameCamera* camera) { gameCamera = camera; }
         void physUpdate(float deltaTime) override;
         void logicUpdate() override;
         void takeDamage(int value) override;
 
         void dash(Vector2 direction, float speed);
+        
     };
 }
 

@@ -5,6 +5,7 @@
 #include "game/gameObjectManager.h"
 #include "game/entities/player.h"
 #include "game/entities/units.h"
+#include "core/cameraSystem.h"
 
 constexpr int screenWidth = 1040;
 constexpr int screenHeight = 1040;
@@ -18,6 +19,8 @@ static std::vector<std::shared_ptr<Asteroid>> asteroids;
 static ObjectPool<Asteroid> asteroidPool;
 
 auto& manager = game::management::GameObjectManager::getInstance();
+
+components::GameCamera gameCamera;
 
 #pragma region SupportFunctions
 void CleanupAsteroidList() {
@@ -95,6 +98,11 @@ int main() {
     InitWindow(screenWidth, screenHeight, "test");
     SetTargetFPS(60);
 
+    // Initialize camera
+    gameCamera.camera.offset = { screenWidth / 2.0f, screenHeight / 2.0f };
+    gameCamera.smoothSpeed = 5.0f;
+    gameCamera.zoom = 1.0f;
+
     // Player (singleton pattern remains)
     game::game_objects::Player::SpawnPlayer(
         components::Transform2D(100, 400, 50, 50), 100, 300, 3);
@@ -108,12 +116,21 @@ int main() {
     float DT = 0;
 
     while (!WindowShouldClose()) {
+        float frameTime = GetFrameTime(); // Store frame time for camera smoothing
+
         // Physics update
-        DT += GetFrameTime();
+        DT += frameTime;
         while (DT > deltaTimePhys) {
             updatePhysics();
             DT -= deltaTimePhys;
         }
+
+        // Update camera before rendering
+        core::systems::CameraSystem::UpdateCamera(
+            gameCamera,
+            *game::game_objects::Player::getInstance(),
+            frameTime
+        );
 
         // Logic
         for (const auto& gameObject : game::management::GameObjectManager::getAllObjects()) {
@@ -124,10 +141,18 @@ int main() {
         // Rendering
         BeginDrawing();
         ClearBackground(RAYWHITE);
+
+        // Begin camera mode
+        core::systems::CameraSystem::BeginCameraDraw(gameCamera);
+
         for (auto* drawnObj : manager.getDrawnObjects()) {
             drawnObj->draw();
         }
 
+        core::systems::CameraSystem::EndCameraDraw();
+
+        // Draw UI elements that shouldn't move with camera (like FPS counter)
+        DrawFPS(10, 10);
 
         EndDrawing();
 

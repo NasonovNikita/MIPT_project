@@ -141,6 +141,22 @@ namespace components {
         virtual ~DrawnObject() = default;
         virtual void draw() = 0;
     };
+
+    struct GameCamera {
+        Camera2D camera;
+        Vector2 targetOffset;
+        float smoothSpeed;
+        float zoom;
+
+        GameCamera() :
+            camera({ 0 }),
+            targetOffset({ 0, 0 }),
+            smoothSpeed(5.0f),
+            zoom(1.0f)
+        {
+            camera.zoom = zoom;
+        }
+    };
 }
 
 #endif //COMPONENTS_H
