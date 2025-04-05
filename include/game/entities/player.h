@@ -22,6 +22,8 @@ namespace game::game_objects {
         std::vector<Vector2> vertices = { Vector2 (0, 0), Vector2 (0, 0), Vector2 (0, 0)};
         static Player *s_instance;
 
+        float shootTimeOut = 0;
+        float dashTimeOut = 0;
         float dashingTime_ = 0;
         float invincibilityTime_ = 0;
 
@@ -46,6 +48,8 @@ namespace game::game_objects {
         }
 
         [[nodiscard]] bool isInvincible() const { return invincibilityTime_ > 0; }
+        [[nodiscard]] bool canShoot() const { return shootTimeOut <= 0; }
+        [[nodiscard]] bool canDash() const { return dashTimeOut <= 0; }
         [[nodiscard]] bool isDashing() const { return dashingTime_ > 0; }
 
         std::vector<Vector2> getVertices();

@@ -11,7 +11,9 @@
 #include "game/entities/bullet.h"
 #include "game/entities/player.h"
 
-#include <iostream>
+
+constexpr int c_acceleration = 500;
+constexpr int c_rotation = 10;
 
 namespace game::game_objects {
 
@@ -29,6 +31,9 @@ namespace game::game_objects {
         vertices[1] += currentSpeed_ * deltaTime;
         vertices[2] += currentSpeed_ * deltaTime;
 
+        if (rotationAcceleration_ == 0) {
+            rotationAcceleration_  = -c_rotation * (currentRotationSpeed_ > 0 ? 1 : -1);
+        }
         currentRotationSpeed_ += rotationAcceleration_ * deltaTime;
         if (currentRotationSpeed_ > maxRotationSpeed_) {
             currentRotationSpeed_ = maxRotationSpeed_;
@@ -36,6 +41,7 @@ namespace game::game_objects {
         if (-currentRotationSpeed_ > maxRotationSpeed_) {
             currentRotationSpeed_ = -maxRotationSpeed_;
         }
+
 
         const auto dAngle = currentRotationSpeed_ * deltaTime;
 
@@ -59,9 +65,6 @@ namespace game::game_objects {
         auto getNoseDirection = [this] {
             return Vector2Normalize(vertices[2] - transform_.center);
         };
-
-        constexpr int c_acceleration = 500;
-        constexpr int c_rotation = 10;
 
         auto isPressedUp = [] { return IsKeyDown(KEY_UP) or IsKeyDown(KEY_W);};
         auto isPressedDown = [] { return IsKeyDown(KEY_DOWN) or IsKeyDown(KEY_S); };
@@ -106,13 +109,14 @@ namespace game::game_objects {
     #pragma endregion
 
         // Shoot
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) or IsKeyPressed(KEY_J)) {
+        if (canShoot() and (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) or IsKeyPressed(KEY_J))) {
             management::GameObjectManager::getInstance().createObject<Bullet>(
         components::Transform2D(vertices[2].x, vertices[2].y, 10, 10), 300, angle_);
+            shootTimeOut = 0.2;
         }
 
         // Dash
-        if (IsKeyPressed(KEY_SPACE)) {
+        if (IsKeyPressed(KEY_SPACE) and canDash()) {
             Vector2 direction = {0, 0};
             bool hasInput = false;
             const Vector2 noseDir = getNoseDirection(); // Store once to avoid repeated calls
@@ -145,10 +149,16 @@ namespace game::game_objects {
         // Timers
         if (invincibilityTime_ > 0)
             invincibilityTime_ -= GetFrameTime();
+        if (shootTimeOut > 0)
+            shootTimeOut -= GetFrameTime();
+        if (dashTimeOut > 0)
+            dashTimeOut -= GetFrameTime();
         if (dashingTime_ > 0) {
             dashingTime_ -= GetFrameTime();
         }
-        else {
+        else if (maxSpeed_ > maxSpeedDashless_) {
+            maxSpeed_ -= 20;
+        } else {
             maxSpeed_ = maxSpeedDashless_;
         }
     }
@@ -162,7 +172,8 @@ namespace game::game_objects {
     void Player::dash(const Vector2 direction, const float speed) {
         currentSpeed_ = direction * speed;
         maxSpeed_ = speed;
-        dashingTime_ = 1;
-        invincibilityTime_ = 1;
+        dashTimeOut = 4;
+        dashingTime_ = 0.5;
+        invincibilityTime_ = 0.5;
     }
 }
