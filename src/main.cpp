@@ -125,18 +125,18 @@ int main() {
             DT -= deltaTimePhys;
         }
 
-        // Update camera before rendering
-        core::systems::CameraSystem::UpdateCamera(
-            gameCamera,
-            *game::game_objects::Player::getInstance(),
-            frameTime
-        );
-
         // Logic
         for (const auto& gameObject : game::management::GameObjectManager::getAllObjects()) {
             if (!gameObject->isActive()) continue;
             gameObject->logicUpdate();
         }
+
+        // Update camera before rendering
+        core::systems::CameraSystem::UpdateCamera(
+            gameCamera,
+            *game::game_objects::Player::getInstance(),
+            GetFrameTime()
+        );
 
         // Rendering
         BeginDrawing();

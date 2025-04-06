@@ -3,16 +3,16 @@
 
 namespace core::systems {
     void CameraSystem::UpdateCamera(components::GameCamera& camera, 
-                                  game::game_objects::GameObject& target, 
-                                  float deltaTime) {
+                                  game::game_objects::GameObject& target,
+                                  const float deltaTime) {
         // Get target position with offset
         Vector2 targetPosition = target.getTransform().center;
         targetPosition.x += camera.targetOffset.x;
         targetPosition.y += camera.targetOffset.y;
         
         // Smooth camera movement
-        Vector2 currentPosition = {camera.camera.target.x, camera.camera.target.y};
-        Vector2 newPosition = Vector2Lerp(
+        const Vector2 currentPosition = {camera.camera.target.x, camera.camera.target.y};
+        const Vector2 newPosition = Vector2Lerp(
             currentPosition,
             targetPosition,
             1.0f - std::exp(-camera.smoothSpeed * deltaTime)
