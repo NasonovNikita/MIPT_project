@@ -4,6 +4,7 @@ project(game)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(game
+        src/core/cameraSystem.cpp
         src/game/entities/player.cpp
         src/game/entities/units.cpp
         src/game/gameObjects.cpp

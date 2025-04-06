@@ -59,11 +59,13 @@ namespace game::game_objects {
 
             DrawTriangleLines(vertices[0], vertices[1], vertices[2], BLUE);
         }
+
         void physUpdate(float deltaTime) override;
         void logicUpdate() override;
         void takeDamage(int value) override;
 
         void dash(Vector2 direction, float speed);
+        
     };
 }
 
