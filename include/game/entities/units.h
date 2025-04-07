@@ -13,9 +13,10 @@ namespace game::game_objects {
 
         void die();
     public:
-
         explicit Unit(const int hp, const float maxSpeed):
         MovingObject(maxSpeed), hp_(hp) {}
+
+        [[nodiscard]] bool virtual isEnemy() = 0;
 
         void virtual takeDamage(int value);
 
@@ -38,6 +39,8 @@ namespace game::game_objects {
 
             collider = new components::ColliderCircle(tr);
         }
+
+        bool isEnemy() override { return true; }
 
         void setCenter(const float x, const float y) {
             transform_.center = Vector2(x, y);

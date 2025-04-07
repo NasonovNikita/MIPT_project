@@ -25,7 +25,8 @@ namespace game::game_objects {
         float shootTimeOut = 0;
         float dashTimeOut = 0;
         float dashingTime_ = 0;
-        float invincibilityTime_ = 0;
+        float dashInvincibilityTime_ = 0;
+        float damageInvincibilityTime_ = 0;
 
         explicit Player(const components::Transform2D &tr, const int hp,
             const float maxSpeed, const float maxRotationSpeed):
@@ -47,7 +48,11 @@ namespace game::game_objects {
             return s_instance;
         }
 
-        [[nodiscard]] bool isInvincible() const { return invincibilityTime_ > 0; }
+        bool isEnemy() override { return false; }
+
+        [[nodiscard]] bool isInvincible() const {
+            return dashInvincibilityTime_ > 0 or damageInvincibilityTime_ > 0;
+        }
         [[nodiscard]] bool canShoot() const { return shootTimeOut <= 0; }
         [[nodiscard]] bool canDash() const { return dashTimeOut <= 0; }
         [[nodiscard]] bool isDashing() const { return dashingTime_ > 0; }
@@ -55,7 +60,12 @@ namespace game::game_objects {
         std::vector<Vector2> getVertices();
 
         void draw() override {
-            DrawTriangle(vertices[0], vertices[1], vertices[2], GREEN);
+            if (!isInvincible())
+                DrawTriangle(vertices[0], vertices[1], vertices[2], GREEN);
+            else if (isDashing())
+                DrawTriangle(vertices[0], vertices[1], vertices[2], BLUE);
+            else if (dashInvincibilityTime_ > 0)
+                DrawTriangle(vertices[0], vertices[1], vertices[2], RED);
 
             DrawTriangleLines(vertices[0], vertices[1], vertices[2], BLUE);
         }
@@ -65,7 +75,8 @@ namespace game::game_objects {
         void takeDamage(int value) override;
 
         void dash(Vector2 direction, float speed);
-        
+
+        void onCollided(CollidingObject *other) override;
     };
 }
 

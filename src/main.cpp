@@ -105,7 +105,7 @@ int main() {
 
     // Player (singleton pattern remains)
     game::game_objects::Player::SpawnPlayer(
-        components::Transform2D(100, 400, 50, 50), 100, 300, 3);
+        components::Transform2D(100, 400, 50, 50), 10, 300, 3);
     manager.registerExternalObject(game::game_objects::Player::getInstance());
 
     // Create objects through manager
@@ -116,7 +116,7 @@ int main() {
     float DT = 0;
 
     while (!WindowShouldClose()) {
-        float frameTime = GetFrameTime(); // Store frame time for camera smoothing
+        const float frameTime = GetFrameTime(); // Store frame time for camera smoothing
 
         // Physics update
         DT += frameTime;
@@ -146,6 +146,8 @@ int main() {
         core::systems::CameraSystem::BeginCameraDraw(gameCamera);
 
         for (auto* drawnObj : manager.getDrawnObjects()) {
+            if (!drawnObj->isActive()) continue;
+
             drawnObj->draw();
         }
 

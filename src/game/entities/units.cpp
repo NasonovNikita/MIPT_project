@@ -40,9 +40,5 @@ namespace game::game_objects {
 
             resolveCollision(*other);
         }
-
-        if (other == Player::getInstance()) {
-            takeDamage(5);
-        }
     }
 }

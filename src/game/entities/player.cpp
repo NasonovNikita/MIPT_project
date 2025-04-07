@@ -15,8 +15,14 @@
 constexpr int c_acceleration = 500;
 constexpr int c_rotation = 10;
 
-namespace game::game_objects {
+constexpr float c_dashTimeOut = 4;
+constexpr float c_dashTime = 0.5;
+constexpr float c_dashInvincibilityTime = 0.5;
 
+constexpr int c_contactDamage = 5;
+constexpr float c_damageInvincibilityTime = 2;
+
+namespace game::game_objects {
 
     std::vector<Vector2> Player::getVertices() {
         return vertices;
@@ -109,7 +115,7 @@ namespace game::game_objects {
     #pragma endregion
 
         // Shoot
-        if (canShoot() and (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) or IsKeyPressed(KEY_J))) {
+        if (canShoot() and (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) or IsKeyDown(KEY_J))) {
             management::GameObjectManager::getInstance().createObject<Bullet>(
         components::Transform2D(vertices[2].x, vertices[2].y, 10, 10), 300, angle_);
             shootTimeOut = 0.2;
@@ -147,8 +153,10 @@ namespace game::game_objects {
         }
 
         // Timers
-        if (invincibilityTime_ > 0)
-            invincibilityTime_ -= GetFrameTime();
+        if (dashInvincibilityTime_ > 0)
+            dashInvincibilityTime_ -= GetFrameTime();
+        if (damageInvincibilityTime_ > 0)
+            damageInvincibilityTime_ -= GetFrameTime();
         if (shootTimeOut > 0)
             shootTimeOut -= GetFrameTime();
         if (dashTimeOut > 0)
@@ -167,13 +175,22 @@ namespace game::game_objects {
         if (isInvincible()) return;
 
         Unit::takeDamage(value);
+        dashInvincibilityTime_ = c_damageInvincibilityTime;
     }
 
     void Player::dash(const Vector2 direction, const float speed) {
         currentSpeed_ = direction * speed;
         maxSpeed_ = speed;
-        dashTimeOut = 4;
-        dashingTime_ = 0.5;
-        invincibilityTime_ = 0.5;
+        dashTimeOut = c_dashTimeOut;
+        dashingTime_ = c_dashTime;
+        dashInvincibilityTime_ = c_dashInvincibilityTime;
     }
+
+    void Player::onCollided(CollidingObject *other) {
+        if (const auto unit = dynamic_cast<Unit*>(other)) {
+            if (unit->isEnemy())
+                takeDamage(c_contactDamage);
+        }
+    }
+
 }
