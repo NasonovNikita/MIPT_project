@@ -21,10 +21,10 @@ constexpr float c_dashTimeOut = 4;
 constexpr float c_dashTime = 0.5;
 constexpr float c_dashInvincibilityTime = 0.5;
 
-constexpr int c_contactDamage = 5;
-constexpr float c_afterContactControlBlockTime = 0.2;
-constexpr float c_damageInvincibilityTime = 1.5;
-constexpr float c_damageImpulse = 0.5;
+constexpr int c_contactDamage = 1;
+constexpr float c_afterContactControlBlockTime = 0.1;
+constexpr float c_damageInvincibilityTime = 0.2;
+constexpr float c_damageImpulse = 0.25;
 
 namespace game::game_objects {
 
@@ -197,6 +197,7 @@ namespace game::game_objects {
             if (unit->isEnemy() and !isInvincible()) {
                 takeDamage(c_contactDamage);
                 const auto collisionNormal = unit->collider->getCollisionNormal(*collider);
+                bounceFromOther(*unit, collisionNormal);
                 currentSpeed_ = collisionNormal * maxSpeed_ * c_damageImpulse;
                 cantControlTime_ = c_afterContactControlBlockTime;
 

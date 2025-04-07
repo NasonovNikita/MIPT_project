@@ -153,7 +153,8 @@ int main() {
 
             drawnObj->draw();
         }
-
+        /*
+        * Отрисовка коллайдеров
         auto playerCollider = dynamic_cast<components::ColliderPoly*>(game::game_objects::Player::getInstance()->collider);
         auto plOutBox = playerCollider->getCoveringBox();
         auto plInBox = playerCollider->getInnerBox();
@@ -166,6 +167,7 @@ int main() {
         auto astInBox = asteroidCollider->getInnerBox();
         DrawRectangleLines(astOutBox.x, astOutBox.y, astOutBox.width, astOutBox.height, BLACK);
         DrawRectangleLines(astInBox.x, astInBox.y, astInBox.width, astInBox.height, BLACK);
+        */
 
         core::systems::CameraSystem::EndCameraDraw();
 
