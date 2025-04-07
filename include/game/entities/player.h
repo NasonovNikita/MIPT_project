@@ -19,7 +19,7 @@ namespace game::game_objects {
         float currentRotationSpeed_ = 0;
         float rotationAcceleration_ = 0;
 
-        std::vector<Vector2> vertices = { Vector2 (0, 0), Vector2 (0, 0), Vector2 (0, 0)};
+        std::vector<Vector2> verticesOffsets = { Vector2 (0, 0), Vector2 (0, 0), Vector2 (0, 0)};
         static Player *s_instance;
 
         float shootTimeOut = 0;
@@ -34,8 +34,12 @@ namespace game::game_objects {
         GameObject(tr), Unit(hp, maxSpeed),
         maxRotationSpeed_(maxRotationSpeed) {
             maxSpeedDashless_ = maxSpeed;
-            vertices = { tr.corner(), tr.corner() + Vector2 {0, tr.scaledSize().y}, tr.center + Vector2 {tr.scaledSize().x / 2, 0}};
-            collider = new components::ColliderPoly(tr.center, vertices);
+            verticesOffsets = { {-tr.scaledSize().x / 2, tr.scaledSize().y / 2},
+                {-tr.scaledSize().x / 2, -tr.scaledSize().y / 2},
+                {tr.scaledSize().x / 2, 0}};
+
+            collider = new components::ColliderPoly({0, 0}, verticesOffsets);
+            collider->setCenter(tr.center);
         }
 
     public:
@@ -59,7 +63,7 @@ namespace game::game_objects {
         [[nodiscard]] bool canDash() const { return dashTimeOut <= 0; }
         [[nodiscard]] bool isDashing() const { return dashingTime_ > 0; }
 
-        std::vector<Vector2> getVertices();
+        std::vector<Vector2> getVertices() const;
 
         void draw() override;
 

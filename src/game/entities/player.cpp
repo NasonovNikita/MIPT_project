@@ -28,18 +28,18 @@ constexpr float c_damageImpulse = 0.5;
 
 namespace game::game_objects {
 
-    std::vector<Vector2> Player::getVertices() {
-        return vertices;
+    std::vector<Vector2> Player::getVertices() const {
+        return {
+            transform_.center + verticesOffsets[0],
+            transform_.center + verticesOffsets[1],
+            transform_.center + verticesOffsets[2]
+        };
     }
 
     Player *Player::s_instance;
 
     void Player::physUpdate(const float deltaTime) {
         Unit::physUpdate(deltaTime);
-
-        vertices[0] += currentSpeed_ * deltaTime;
-        vertices[1] += currentSpeed_ * deltaTime;
-        vertices[2] += currentSpeed_ * deltaTime;
 
         if (rotationAcceleration_ == 0 and currentRotationSpeed_ != 0) {
             rotationAcceleration_  = -c_rotation * (currentRotationSpeed_ > 0 ? 1 : -1);
@@ -61,9 +61,9 @@ namespace game::game_objects {
 
         transform_.angle = angle_;
 
-        vertices = { transform_.center + Vector2Rotate(vertices[0] - transform_.center, dAngle),
-                         transform_.center + Vector2Rotate(vertices[1] - transform_.center, dAngle),
-                         transform_.center + Vector2Rotate(vertices[2] - transform_.center, dAngle) };
+        verticesOffsets = { Vector2Rotate(verticesOffsets[0], dAngle),
+                         Vector2Rotate(verticesOffsets[1], dAngle),
+                         Vector2Rotate(verticesOffsets[2], dAngle) };
 
 
 
@@ -73,7 +73,7 @@ namespace game::game_objects {
     void Player::logicUpdate() {
     #pragma region movement
         auto getNoseDirection = [this] {
-            return Vector2Normalize(vertices[2] - transform_.center);
+            return Vector2Normalize(verticesOffsets[2]);
         };
 
         auto isPressedUp = [] { return IsKeyDown(KEY_UP) or IsKeyDown(KEY_W); };
@@ -100,8 +100,8 @@ namespace game::game_objects {
         }
 
         if (isPressedDown() and canControl()) {
-            accelerationDirection = Vector2Normalize(vertices[2] - transform_.center);
-            acceleration_ = -c_acceleration;
+            accelerationDirection = Vector2Negate(getNoseDirection());
+            acceleration_ = c_acceleration;
         }
 
         if (isPressedRight() and canControl()) {
@@ -121,7 +121,7 @@ namespace game::game_objects {
         // Shoot
         if (canShoot() and (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) or IsKeyDown(KEY_J))) {
             management::GameObjectManager::getInstance().createObject<Bullet>(
-        components::Transform2D(vertices[2].x, vertices[2].y, 10, 10), 300, angle_);
+        components::Transform2D(getVertices()[2].x, getVertices()[2].y, 10, 10), 300, angle_);
             shootTimeOut = 0.2;
         }
 
@@ -200,22 +200,22 @@ namespace game::game_objects {
                 currentSpeed_ = collisionNormal * maxSpeed_ * c_damageImpulse;
                 cantControlTime_ = c_afterContactControlBlockTime;
 
-                if (collisionNormal == Vector2(0, 0)) {
-                    std::cout << "bruh" << std::endl;
-                }
+                resolveCollision(*unit);
             }
         }
     }
 
     void Player::draw()  {
-        if (!isInvincible())
-            DrawTriangle(vertices[0], vertices[1], vertices[2], GREEN);
-        else if (isDashing())
-            DrawTriangle(vertices[0], vertices[1], vertices[2], BLUE);
-        else if (dashInvincibilityTime_ > 0)
-            DrawTriangle(vertices[0], vertices[1], vertices[2], RED);
+        const auto vertices = getVertices();
 
-        DrawTriangleLines(vertices[0], vertices[1], vertices[2], BLUE);
+        if (!isInvincible())
+            DrawTriangle(vertices[1], vertices[0], vertices[2], GREEN);
+        else if (isDashing())
+            DrawTriangle(vertices[1], vertices[0], vertices[2], BLUE);
+        else if (dashInvincibilityTime_ > 0)
+            DrawTriangle(vertices[1], vertices[0], vertices[2], RED);
+
+        DrawTriangleLines(vertices[1], vertices[0], vertices[2], BLUE);
     }
 
 

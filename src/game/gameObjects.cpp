@@ -58,7 +58,7 @@ namespace game::game_objects {
     void CollidingObject::resolveCollision(CollidingObject &other) {
         const auto collisionNormal = collider->
                 getCollisionNormal(*other.collider);
-        while (collider->checkCollision(*other.collider)) {
+        for (int tries = 0; tries < 1000 and collider->checkCollision(*other.collider); tries++) {
             transform_.center -= collisionNormal * 0.1;
             other.transform_.center += collisionNormal * 0.1;
 

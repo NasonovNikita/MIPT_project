@@ -170,9 +170,7 @@ namespace components {
     Vector2 Collider::getCollisionNormal(Collider &other) {
         // Run GJK to get the initial simplex
         std::vector<Vector2> simplex;
-        if (!checkCollision(other, simplex)) {
-            return {0, 0}; // No collision
-        }
+        checkCollision(other, simplex);
 
         // Run EPA to find the collision normal
         return EPA(*this, other, simplex);

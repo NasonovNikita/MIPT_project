@@ -159,6 +159,8 @@ int main() {
         auto plInBox = playerCollider->getInnerBox();
         DrawRectangleLines(plOutBox.x, plOutBox.y, plOutBox.width, plOutBox.height, BLACK);
         DrawRectangleLines(plInBox.x, plInBox.y, plInBox.width, plInBox.height, BLACK);
+        auto vertices = playerCollider->getVertices();
+        DrawTriangleLines(vertices[0], vertices[1], vertices[2], RED);
         auto asteroidCollider = dynamic_cast<components::ColliderCircle*>(asteroids[0]->collider);
         auto astOutBox = asteroidCollider->getCoveringBox();
         auto astInBox = asteroidCollider->getInnerBox();
