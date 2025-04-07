@@ -11,6 +11,8 @@
 #include "game/entities/bullet.h"
 #include "game/entities/player.h"
 
+#include <iostream>
+
 
 constexpr int c_acceleration = 500;
 constexpr int c_rotation = 10;
@@ -20,7 +22,9 @@ constexpr float c_dashTime = 0.5;
 constexpr float c_dashInvincibilityTime = 0.5;
 
 constexpr int c_contactDamage = 5;
-constexpr float c_damageInvincibilityTime = 2;
+constexpr float c_afterContactControlBlockTime = 0.2;
+constexpr float c_damageInvincibilityTime = 1.5;
+constexpr float c_damageImpulse = 0.5;
 
 namespace game::game_objects {
 
@@ -77,38 +81,38 @@ namespace game::game_objects {
         auto isPressedLeft = [] { return IsKeyDown(KEY_LEFT) or IsKeyDown(KEY_A); };
         auto isPressedRight = [] { return IsKeyDown(KEY_RIGHT) or IsKeyDown(KEY_D); };
 
-        if (!(isPressedUp() or isPressedDown())) {
+        if (!(isPressedUp() or isPressedDown()) and canControl()) {
             acceleration_ = 0;
             if (fabs(getSpeedModule()) <= 50) {
                 currentSpeed_ = {0, 0};
             }
         }
 
-        if (!(isPressedLeft() or isPressedRight())) {
+        if (!(isPressedLeft() or isPressedRight()) and canControl()) {
             rotationAcceleration_ = 0;
             if (fabs(currentRotationSpeed_) <= 1)
                 currentRotationSpeed_ = 0;
         }
 
-        if (isPressedUp()) {
+        if (isPressedUp() and canControl()) {
             accelerationDirection = getNoseDirection();
             acceleration_ = c_acceleration;
         }
 
-        if (isPressedDown()) {
+        if (isPressedDown() and canControl()) {
             accelerationDirection = Vector2Normalize(vertices[2] - transform_.center);
             acceleration_ = -c_acceleration;
         }
 
-        if (isPressedRight()) {
+        if (isPressedRight() and canControl()) {
             rotationAcceleration_ = c_rotation;
         }
 
-        if (isPressedLeft()) {
+        if (isPressedLeft() and canControl()) {
             rotationAcceleration_ = -c_rotation;
         }
 
-        if (IsKeyDown(KEY_LEFT_CONTROL) or IsKeyDown(KEY_RIGHT_CONTROL)) {
+        if (IsKeyDown(KEY_LEFT_CONTROL) or IsKeyDown(KEY_RIGHT_CONTROL)) {  // Control allowed always
             accelerationDirection = Vector2Normalize(Vector2Negate(currentSpeed_));
             acceleration_ = c_acceleration;
         }
@@ -161,6 +165,8 @@ namespace game::game_objects {
             shootTimeOut -= GetFrameTime();
         if (dashTimeOut > 0)
             dashTimeOut -= GetFrameTime();
+        if (cantControlTime_ > 0)
+            cantControlTime_ -= GetFrameTime();
         if (dashingTime_ > 0) {
             dashingTime_ -= GetFrameTime();
         }
@@ -188,9 +194,29 @@ namespace game::game_objects {
 
     void Player::onCollided(CollidingObject *other) {
         if (const auto unit = dynamic_cast<Unit*>(other)) {
-            if (unit->isEnemy())
+            if (unit->isEnemy() and !isInvincible()) {
                 takeDamage(c_contactDamage);
+                const auto collisionNormal = unit->collider->getCollisionNormal(*collider);
+                currentSpeed_ = collisionNormal * maxSpeed_ * c_damageImpulse;
+                cantControlTime_ = c_afterContactControlBlockTime;
+
+                if (collisionNormal == Vector2(0, 0)) {
+                    std::cout << "bruh" << std::endl;
+                }
+            }
         }
     }
+
+    void Player::draw()  {
+        if (!isInvincible())
+            DrawTriangle(vertices[0], vertices[1], vertices[2], GREEN);
+        else if (isDashing())
+            DrawTriangle(vertices[0], vertices[1], vertices[2], BLUE);
+        else if (dashInvincibilityTime_ > 0)
+            DrawTriangle(vertices[0], vertices[1], vertices[2], RED);
+
+        DrawTriangleLines(vertices[0], vertices[1], vertices[2], BLUE);
+    }
+
 
 }

@@ -36,6 +36,7 @@ void CleanupAsteroidList() {
 }
 
 void updatePhysics() {
+    /*
     for (const auto& asteroid : asteroids) {
         if (const auto asteroidPtr = asteroid.get()) {
             if (!asteroidPtr->isActive()) continue;
@@ -60,6 +61,7 @@ void updatePhysics() {
             asteroidPtr->updateCollider();
         }
     }
+    */
 
     for (const auto& gameObject : GameObject::s_allObjects) {
         if (!gameObject->isActive()) continue;
@@ -70,10 +72,11 @@ void updatePhysics() {
     for (int i = 0; i < collidingObjects.size(); i++) {
         if (!collidingObjects[i]->isActive()) continue;
 
-        for (int j = i; j < collidingObjects.size(); j++) {
+        for (int j = i + 1; j < collidingObjects.size(); j++) {
             if (!collidingObjects[j]->isActive()) continue;
 
-            if (!collidingObjects[i]->collider->checkCollision(*collidingObjects[j]->collider)) continue;
+            if (!collidingObjects[i]->collider->checkCollision(*collidingObjects[j]->collider) or
+                !collidingObjects[j]->collider->checkCollision(*collidingObjects[i]->collider)) continue;
 
             collidingObjects[i]->onCollided(collidingObjects[j]);
             collidingObjects[j]->onCollided(collidingObjects[i]);
@@ -105,7 +108,7 @@ int main() {
 
     // Player (singleton pattern remains)
     game::game_objects::Player::SpawnPlayer(
-        components::Transform2D(100, 400, 50, 50), 10, 300, 3);
+        components::Transform2D(100, 400, 50, 50), 100, 300, 3);
     manager.registerExternalObject(game::game_objects::Player::getInstance());
 
     // Create objects through manager
@@ -150,6 +153,17 @@ int main() {
 
             drawnObj->draw();
         }
+
+        auto playerCollider = dynamic_cast<components::ColliderPoly*>(game::game_objects::Player::getInstance()->collider);
+        auto plOutBox = playerCollider->getCoveringBox();
+        auto plInBox = playerCollider->getInnerBox();
+        DrawRectangleLines(plOutBox.x, plOutBox.y, plOutBox.width, plOutBox.height, BLACK);
+        DrawRectangleLines(plInBox.x, plInBox.y, plInBox.width, plInBox.height, BLACK);
+        auto asteroidCollider = dynamic_cast<components::ColliderCircle*>(asteroids[0]->collider);
+        auto astOutBox = asteroidCollider->getCoveringBox();
+        auto astInBox = asteroidCollider->getInnerBox();
+        DrawRectangleLines(astOutBox.x, astOutBox.y, astOutBox.width, astOutBox.height, BLACK);
+        DrawRectangleLines(astInBox.x, astInBox.y, astInBox.width, astInBox.height, BLACK);
 
         core::systems::CameraSystem::EndCameraDraw();
 

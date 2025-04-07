@@ -5,6 +5,8 @@
 #include "components.h"
 
 #include <functional>
+#include <iostream>
+#include <ostream>
 #include <stdexcept>
 
 namespace components {
@@ -70,7 +72,7 @@ namespace components {
         // Initial direction
         Vector2 direction = {1, 0};
 
-        // Initial support point
+        // Initial support pointcheckC
         const Vector2 support = supportPoint(direction) - other.supportPoint(
                                     Vector2Negate(direction));
 
@@ -81,7 +83,7 @@ namespace components {
         direction = Vector2Negate(support);
 
         // GJK loop
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1000; i++) {
             // Get a new support point
             Vector2 newSupport = supportPoint(direction) - other.supportPoint(
                                      Vector2Negate(direction));
@@ -143,11 +145,11 @@ namespace components {
 
     Vector2 EPA(Collider& colliderA, Collider& colliderB, const std::vector<Vector2>& simplex) {
         std::vector<Vector2> polytope = simplex;
-        float tolerance = 0.0001f;
+        constexpr float tolerance = 0.0001f;
 
         while (true) {
             // Find the closest face to the origin
-            Face face = getClosestFace(polytope);
+            const Face face = getClosestFace(polytope);
 
             // Get the support point in the direction of the face's normal
             Vector2 support = colliderA.supportPoint(face.normal) - colliderB.
@@ -269,7 +271,7 @@ namespace components {
     }
 
     Rectangle ColliderPoly::getCoveringBox() {
-        float xMin = INFINITY, yMin = INFINITY, xMax = 0, yMax = 0;
+        float xMin = INFINITY, yMin = INFINITY, xMax = -INFINITY, yMax = -INFINITY;
 
         for (const auto&[x, y] : getVertices()) {
             xMax = std::max(xMax, x);
@@ -289,8 +291,7 @@ namespace components {
         // First get the outer bounding box
         Rectangle outer = getCoveringBox();
 
-        // Calculate inner box as 50% smaller and centered (adjust ratio as needed)
-        const float shrinkRatio = 0.5f; // 50% smaller
+        const float shrinkRatio = 0.25f;
         const float width = outer.width * shrinkRatio;
         const float height = outer.height * shrinkRatio;
 
