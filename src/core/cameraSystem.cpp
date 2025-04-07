@@ -2,7 +2,7 @@
 #include "core/cameraSystem.h"
 
 namespace core::systems {
-    void CameraSystem::UpdateCamera(components::GameCamera& camera, 
+    void CameraSystem::UpdateCamera(components::GameCamera& camera,
                                   game::game_objects::GameObject& target,
                                   const float deltaTime) {
         // Get target position with offset

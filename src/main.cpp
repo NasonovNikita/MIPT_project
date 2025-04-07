@@ -23,7 +23,7 @@ auto& manager = game::management::GameObjectManager::getInstance();
 components::GameCamera gameCamera;
 
 #pragma region SupportFunctions
-void CleanupAsteroidList() {
+void cleanupAsteroidList() {
     for (const auto& asteroid : asteroids) {
         if (!asteroid->isActive()) asteroidPool.release(asteroid);
     }
@@ -95,6 +95,21 @@ void TEMP_reviveAsteroid() {
     }
 }
 
+void debugDrawColliders() {
+    auto playerCollider = dynamic_cast<components::ColliderPoly*>(game::game_objects::Player::GetInstance()->collider);
+    auto plOutBox = playerCollider->getCoveringBox();
+    auto plInBox = playerCollider->getInnerBox();
+    DrawRectangleLines(plOutBox.x, plOutBox.y, plOutBox.width, plOutBox.height, BLACK);
+    DrawRectangleLines(plInBox.x, plInBox.y, plInBox.width, plInBox.height, BLACK);
+    auto vertices = playerCollider->getVertices();
+    DrawTriangleLines(vertices[0], vertices[1], vertices[2], RED);
+    auto asteroidCollider = dynamic_cast<components::ColliderCircle*>(asteroids[0]->collider);
+    auto astOutBox = asteroidCollider->getCoveringBox();
+    auto astInBox = asteroidCollider->getInnerBox();
+    DrawRectangleLines(astOutBox.x, astOutBox.y, astOutBox.width, astOutBox.height, BLACK);
+    DrawRectangleLines(astInBox.x, astInBox.y, astInBox.width, astInBox.height, BLACK);
+}
+
 #pragma endregion
 
 int main() {
@@ -109,7 +124,7 @@ int main() {
     // Player (singleton pattern remains)
     game::game_objects::Player::SpawnPlayer(
         components::Transform2D(100, 400, 50, 50), 100, 300, 3);
-    manager.registerExternalObject(game::game_objects::Player::getInstance());
+    manager.registerExternalObject(game::game_objects::Player::GetInstance());
 
     // Create objects through manager
     const auto newAst = manager.createObject<Asteroid>(
@@ -137,7 +152,7 @@ int main() {
         // Update camera before rendering
         core::systems::CameraSystem::UpdateCamera(
             gameCamera,
-            *game::game_objects::Player::getInstance(),
+            *game::game_objects::Player::GetInstance(),
             frameTime
         );
 
@@ -154,18 +169,7 @@ int main() {
             drawnObj->draw();
         }
 
-        auto playerCollider = dynamic_cast<components::ColliderPoly*>(game::game_objects::Player::getInstance()->collider);
-        auto plOutBox = playerCollider->getCoveringBox();
-        auto plInBox = playerCollider->getInnerBox();
-        DrawRectangleLines(plOutBox.x, plOutBox.y, plOutBox.width, plOutBox.height, BLACK);
-        DrawRectangleLines(plInBox.x, plInBox.y, plInBox.width, plInBox.height, BLACK);
-        auto vertices = playerCollider->getVertices();
-        DrawTriangleLines(vertices[0], vertices[1], vertices[2], RED);
-        auto asteroidCollider = dynamic_cast<components::ColliderCircle*>(asteroids[0]->collider);
-        auto astOutBox = asteroidCollider->getCoveringBox();
-        auto astInBox = asteroidCollider->getInnerBox();
-        DrawRectangleLines(astOutBox.x, astOutBox.y, astOutBox.width, astOutBox.height, BLACK);
-        DrawRectangleLines(astInBox.x, astInBox.y, astInBox.width, astInBox.height, BLACK);
+        debugDrawColliders();
 
         core::systems::CameraSystem::EndCameraDraw();
 
@@ -176,7 +180,7 @@ int main() {
 
         // Cleanup
         manager.destroyInactive();
-        CleanupAsteroidList();
+        cleanupAsteroidList();
         TEMP_reviveAsteroid();
     }
 
