@@ -6,6 +6,7 @@
 #include "game/entities/player.h"
 #include "game/entities/units.h"
 #include "core/cameraSystem.h"
+#include "core/animation.h"
 
 constexpr int screenWidth = 1040;
 constexpr int screenHeight = 1040;
@@ -101,6 +102,12 @@ int main() {
     InitWindow(screenWidth, screenHeight, "test");
     SetTargetFPS(60);
 
+    const char* explosionSheet = "C:/Users/maxaz/source/repos/MIPT_project/libs/raylib/examples/textures/resources/explosion.png"; // Example from Raylib assets
+    core::animation::AnimationSystem::Load("explosion", explosionSheet, 64, 64, 16, 0.05f, false);
+
+    const char* asteroidAnimSheet = "resources/asteroid_anim.png"; // Example
+    core::animation::AnimationSystem::Load("asteroid", asteroidAnimSheet, 32, 32, 8, 0.1f, true);
+
     // Initialize camera
     gameCamera.camera.offset = { screenWidth / 2.0f, screenHeight / 2.0f };
     gameCamera.smoothSpeed = 5.0f;
@@ -108,7 +115,7 @@ int main() {
 
     // Player (singleton pattern remains)
     game::game_objects::Player::SpawnPlayer(
-        components::Transform2D(100, 400, 50, 50), 100, 300, 3);
+        components::Transform2D(100, 400, 50, 50), 10, 300, 3);
     manager.registerExternalObject(game::game_objects::Player::getInstance());
 
     // Create objects through manager
@@ -120,6 +127,8 @@ int main() {
 
     while (!WindowShouldClose()) {
         const float frameTime = GetFrameTime(); // Store frame time for camera smoothing
+
+        core::animation::AnimationSystem::Update(frameTime);
 
         // Physics update
         DT += frameTime;
@@ -147,13 +156,15 @@ int main() {
 
         // Begin camera mode
         core::systems::CameraSystem::BeginCameraDraw(gameCamera);
+        core::animation::AnimationSystem::Draw();
 
         for (auto* drawnObj : manager.getDrawnObjects()) {
             if (!drawnObj->isActive()) continue;
 
             drawnObj->draw();
         }
-
+        /*
+        * Отрисовка коллизий
         auto playerCollider = dynamic_cast<components::ColliderPoly*>(game::game_objects::Player::getInstance()->collider);
         auto plOutBox = playerCollider->getCoveringBox();
         auto plInBox = playerCollider->getInnerBox();
@@ -166,6 +177,7 @@ int main() {
         auto astInBox = asteroidCollider->getInnerBox();
         DrawRectangleLines(astOutBox.x, astOutBox.y, astOutBox.width, astOutBox.height, BLACK);
         DrawRectangleLines(astInBox.x, astInBox.y, astInBox.width, astInBox.height, BLACK);
+        */
 
         core::systems::CameraSystem::EndCameraDraw();
 
@@ -178,6 +190,7 @@ int main() {
         manager.destroyInactive();
         CleanupAsteroidList();
         TEMP_reviveAsteroid();
+        core::animation::AnimationSystem::UnloadAll();
     }
 
     return 0;

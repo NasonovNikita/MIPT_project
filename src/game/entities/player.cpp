@@ -10,6 +10,7 @@
 #include "game/gameObjects.h"
 #include "game/entities/bullet.h"
 #include "game/entities/player.h"
+#include "core/animation.h"
 
 #include <iostream>
 
@@ -181,6 +182,10 @@ namespace game::game_objects {
         if (isInvincible()) return;
 
         Unit::takeDamage(value);
+        if (!Player::isActive()) {
+            core::animation::AnimationSystem::Play("explosion",
+                { Player::GameObject::getTransform().center.x, Player::GameObject::getTransform().center.y, Player::GameObject::getTransform().center.x + 64, Player::GameObject::getTransform().center.y +64});
+        }
         dashInvincibilityTime_ = c_damageInvincibilityTime;
     }
 
