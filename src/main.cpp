@@ -102,11 +102,14 @@ int main() {
     InitWindow(screenWidth, screenHeight, "test");
     SetTargetFPS(60);
 
-    const char* explosionSheet = "C:/Users/maxaz/source/repos/MIPT_project/libs/raylib/examples/textures/resources/explosion.png"; // Example from Raylib assets
-    core::animation::AnimationSystem::Load("explosion", explosionSheet, 64, 64, 16, 0.05f, false);
 
-    const char* asteroidAnimSheet = "resources/asteroid_anim.png"; // Example
-    core::animation::AnimationSystem::Load("asteroid", asteroidAnimSheet, 32, 32, 8, 0.1f, true);
+    // Загрузка картники в систему анимаций
+
+    std::string project_root_str(PROJECT_ROOT_PATH); // Подгрузка пути проекта (создаётся в CMake относительно пользователя)
+    std::string explosionSheet_str("/assets/textures/explosion.png"); //Путь до анимации 
+    std::string full_path_str = project_root_str + explosionSheet_str;
+    core::animation::AnimationSystem::Load("explosion", full_path_str.c_str(), {5, 5}, 0.04f, false);
+
 
     // Initialize camera
     gameCamera.camera.offset = { screenWidth / 2.0f, screenHeight / 2.0f };
@@ -156,13 +159,15 @@ int main() {
 
         // Begin camera mode
         core::systems::CameraSystem::BeginCameraDraw(gameCamera);
-        core::animation::AnimationSystem::Draw();
 
         for (auto* drawnObj : manager.getDrawnObjects()) {
             if (!drawnObj->isActive()) continue;
 
             drawnObj->draw();
         }
+
+        core::animation::AnimationSystem::Draw(); 
+
         /*
         * Отрисовка коллизий
         auto playerCollider = dynamic_cast<components::ColliderPoly*>(game::game_objects::Player::getInstance()->collider);
@@ -179,6 +184,9 @@ int main() {
         DrawRectangleLines(astInBox.x, astInBox.y, astInBox.width, astInBox.height, BLACK);
         */
 
+        DrawText(TextFormat("Animations: %d",
+            core::animation::AnimationSystem::GetActiveCount()), 10, 40, 20, RED);
+
         core::systems::CameraSystem::EndCameraDraw();
 
         // Draw UI elements that shouldn't move with camera (like FPS counter)
@@ -190,8 +198,8 @@ int main() {
         manager.destroyInactive();
         CleanupAsteroidList();
         TEMP_reviveAsteroid();
-        core::animation::AnimationSystem::UnloadAll();
     }
 
+    core::animation::AnimationSystem::UnloadAll();
     return 0;
 }

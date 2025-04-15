@@ -181,10 +181,21 @@ namespace game::game_objects {
     void Player::takeDamage(const int value) {
         if (isInvincible()) return;
 
-        Unit::takeDamage(value);
-        if (!Player::isActive()) {
-            core::animation::AnimationSystem::Play("explosion",
-                { Player::GameObject::getTransform().center.x, Player::GameObject::getTransform().center.y, Player::GameObject::getTransform().center.x + 64, Player::GameObject::getTransform().center.y +64});
+        hp_.ChangeValue(-value);
+
+        if (hp_.getValue() <= 0) {
+            // Create explosion transform at player position
+            components::Transform2D explosionTransform = getTransform();
+            explosionTransform.size = { 150, 150 }; // Larger size for visibility
+            explosionTransform.angle = 0; // No rotation
+
+            // Play explosion animation
+            core::animation::AnimationSystem::Play("explosion", explosionTransform);
+
+            // Delay death by 1 frame to ensure animation plays
+            SetExitKey(KEY_NULL); // Temporarily disable window close
+            die();
+            SetExitKey(KEY_ESCAPE); // Restore window close
         }
         dashInvincibilityTime_ = c_damageInvincibilityTime;
     }
