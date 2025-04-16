@@ -43,7 +43,7 @@ namespace game::game_objects {
         }
 
     public:
-        static Player *getInstance() {
+        static Player *GetInstance() {
             return s_instance;
         }
 
@@ -63,7 +63,7 @@ namespace game::game_objects {
         [[nodiscard]] bool canDash() const { return dashTimeOut <= 0; }
         [[nodiscard]] bool isDashing() const { return dashingTime_ > 0; }
 
-        std::vector<Vector2> getVertices() const;
+        [[nodiscard]] std::vector<Vector2> getVertices() const;
 
         void draw() override;
 
