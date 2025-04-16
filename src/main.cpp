@@ -5,12 +5,17 @@
 #include "game/gameObjectManager.h"
 #include "game/entities/player.h"
 #include "game/entities/units.h"
+#include "game/worldMap.h"
 #include "core/cameraSystem.h"
 #include "core/animation.h"
+
 
 constexpr int screenWidth = 1040;
 constexpr int screenHeight = 1040;
 constexpr float deltaTimePhys = 0.002f;
+
+const float WORLD_MAP_RADIUS = 1500.f;
+const Vector2 CENTER_OF_WORLD = { screenWidth / 2.0f, screenHeight / 2.0f };
 
 using game::game_objects::Asteroid;
 using core::object_pool::ObjectPool;
@@ -106,19 +111,20 @@ int main() {
     // Загрузка картники в систему анимаций
 
     std::string project_root_str(PROJECT_ROOT_PATH); // Подгрузка пути проекта (создаётся в CMake относительно пользователя)
-    std::string explosionSheet_str("/assets/textures/explosion.png"); //Путь до анимации 
-    std::string full_path_str = project_root_str + explosionSheet_str;
-    core::animation::AnimationSystem::Load("explosion", full_path_str.c_str(), {5, 5}, 0.04f, false);
+    std::string explosionSheet_str = project_root_str + "/assets/textures/explosion.png"; //Путь до анимации 
+    core::animation::AnimationSystem::Load("explosion", explosionSheet_str.c_str(), {5, 5}, 0.04f, false);
 
+    //Инициализация игрового мира   
+    game::world::WorldMap worldMap(WORLD_MAP_RADIUS, CENTER_OF_WORLD);
 
     // Initialize camera
-    gameCamera.camera.offset = { screenWidth / 2.0f, screenHeight / 2.0f };
+    gameCamera.camera.offset = CENTER_OF_WORLD;
     gameCamera.smoothSpeed = 5.0f;
-    gameCamera.zoom = 1.0f;
+    gameCamera.zoom = 0.5f;
 
     // Player (singleton pattern remains)
     game::game_objects::Player::SpawnPlayer(
-        components::Transform2D(100, 400, 50, 50), 10, 300, 3);
+        components::Transform2D(CENTER_OF_WORLD.x, CENTER_OF_WORLD.y, 50, 50), 10, 300, 3);
     manager.registerExternalObject(game::game_objects::Player::getInstance());
 
     // Create objects through manager
@@ -140,6 +146,8 @@ int main() {
             DT -= deltaTimePhys;
         }
 
+        worldMap.Update();
+
         // Logic
         for (const auto& gameObject : game::management::GameObjectManager::getAllObjects()) {
             if (!gameObject->isActive()) continue;
@@ -159,6 +167,7 @@ int main() {
 
         // Begin camera mode
         core::systems::CameraSystem::BeginCameraDraw(gameCamera);
+        worldMap.Draw();
 
         for (auto* drawnObj : manager.getDrawnObjects()) {
             if (!drawnObj->isActive()) continue;
