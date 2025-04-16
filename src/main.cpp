@@ -6,6 +6,7 @@
 #include "game/entities/player.h"
 #include "game/entities/units.h"
 #include "core/cameraSystem.h"
+#include "core/animation.h"
 
 constexpr int screenWidth = 1040;
 constexpr int screenHeight = 1040;
@@ -116,6 +117,15 @@ int main() {
     InitWindow(screenWidth, screenHeight, "test");
     SetTargetFPS(60);
 
+
+    // �������� �������� � ������� ��������
+
+    std::string project_root_str(PROJECT_ROOT_PATH); // ��������� ���� ������� (�������� � CMake ������������ ������������)
+    std::string explosionSheet_str("/assets/textures/explosion.png"); //���� �� �������� 
+    std::string full_path_str = project_root_str + explosionSheet_str;
+    core::animation::AnimationSystem::Load("explosion", full_path_str.c_str(), {5, 5}, 0.04f, false);
+
+
     // Initialize camera
     gameCamera.camera.offset = { screenWidth / 2.0f, screenHeight / 2.0f };
     gameCamera.smoothSpeed = 5.0f;
@@ -123,7 +133,8 @@ int main() {
 
     // Player (singleton pattern remains)
     game::game_objects::Player::SpawnPlayer(
-        components::Transform2D(100, 400, 50, 50), 100, 300, 3);
+
+        components::Transform2D(100, 400, 50, 50), 10, 300, 3);
     manager.registerExternalObject(game::game_objects::Player::GetInstance());
 
     // Create objects through manager
@@ -135,6 +146,8 @@ int main() {
 
     while (!WindowShouldClose()) {
         const float frameTime = GetFrameTime(); // Store frame time for camera smoothing
+
+        core::animation::AnimationSystem::Update(frameTime);
 
         // Physics update
         DT += frameTime;
@@ -169,7 +182,11 @@ int main() {
             drawnObj->draw();
         }
 
-        debugDrawColliders();
+
+        core::animation::AnimationSystem::Draw(); 
+
+        DrawText(TextFormat("Animations: %d",
+            core::animation::AnimationSystem::GetActiveCount()), 10, 40, 20, RED);
 
         core::systems::CameraSystem::EndCameraDraw();
 
@@ -184,5 +201,6 @@ int main() {
         TEMP_reviveAsteroid();
     }
 
+    core::animation::AnimationSystem::UnloadAll();
     return 0;
 }
