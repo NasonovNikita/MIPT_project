@@ -8,9 +8,9 @@
 
 namespace game::game_objects {
     class Unit : public CollidingObject, public DrawnGameObject, public MovingObject {
-        
-    protected:
         stats::Stat hp_{ 0 };
+
+    protected:
         void die();
     public:
         explicit Unit(const int hp, const float maxSpeed):

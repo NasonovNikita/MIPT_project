@@ -1,5 +1,7 @@
 #include "core/animation.h"
 
+#include <algorithm>
+
 
 namespace core::animation {
     std::unordered_map<std::string, AnimationSystem::Animation> AnimationSystem::animations;
@@ -7,13 +9,13 @@ namespace core::animation {
 
     void AnimationSystem::Load(const std::string& name,
         const char* spriteSheetPath,
-        std::pair<int, int> framesCount,
-        float frameDuration,
-        bool looping) {
-        Texture2D spriteSheet = LoadTexture(spriteSheetPath);
+        const std::pair<int, int> &framesCount,
+        const float frameDuration,
+        const bool looping) {
+        const Texture2D spriteSheet = LoadTexture(spriteSheetPath);
 
-        int frameWidth = spriteSheet.width / framesCount.second;
-        int frameHeight = spriteSheet.height / framesCount.first;
+        const int frameWidth = spriteSheet.width / framesCount.second;
+        const int frameHeight = spriteSheet.height / framesCount.first;
 
         Animation anim;
         anim.frameDuration = frameDuration;
@@ -26,8 +28,8 @@ namespace core::animation {
                 Image frameImage = LoadImageFromTexture(spriteSheet);
                 ImageCrop(&frameImage,
                     {
-                    (float)(j * frameWidth), (float)(i * frameHeight),
-                        (float)frameWidth, (float)frameHeight
+                    static_cast<float>(j * frameWidth), static_cast<float>(i * frameHeight),
+                        static_cast<float>(frameWidth), static_cast<float>(frameHeight)
                     });
                 anim.frames.push_back(LoadTextureFromImage(frameImage));
                 UnloadImage(frameImage);
@@ -70,12 +72,10 @@ namespace core::animation {
                     }
                     else {
                         // Remove non-looping animations that finished
-                        activeAnimations.erase(
-                            std::remove_if(activeAnimations.begin(), activeAnimations.end(),
-                                [&](const auto& item) {
-                                    return item.first == name;
-                                }),
-                            activeAnimations.end());
+                        std::erase_if(activeAnimations,
+                                      [&](const auto& item) {
+                                          return item.first == name;
+                                      });
                         anim.currentFrame = (int)anim.frames.size() - 1;
                     }
                 }
@@ -88,7 +88,7 @@ void AnimationSystem::Draw() {
     for (size_t i = 0; i < activeAnimations.size(); ) {
         auto& [name, transform] = activeAnimations[i];
         
-        if (animations.find(name) == animations.end()) {
+        if (!animations.contains(name)) {
             activeAnimations.erase(activeAnimations.begin() + i);
             continue;
         }
@@ -99,18 +99,18 @@ void AnimationSystem::Draw() {
             continue;
         }
 
-        Texture2D frame = anim.frames[anim.currentFrame];
-        Vector2 position = transform.center;
-        Vector2 size = transform.scaledSize();
-        float rotation = transform.angle;
+        const Texture2D frame = anim.frames[anim.currentFrame];
+        const Vector2 position = transform.center;
+        const Vector2 size = transform.scaledSize();
+        const float rotation = transform.angle;
 
-        Rectangle source = {
+        const Rectangle source = {
             0.0f, 0.0f,
-            (float)frame.width * (anim.flipX ? -1.0f : 1.0f),
-            (float)frame.height * (anim.flipY ? -1.0f : 1.0f)
+            static_cast<float>(frame.width) * (anim.flipX ? -1.0f : 1.0f),
+            static_cast<float>(frame.height) * (anim.flipY ? -1.0f : 1.0f)
         };
 
-        Rectangle dest = {
+        const Rectangle dest = {
             position.x, position.y,
             size.x, size.y
         };
@@ -121,9 +121,9 @@ void AnimationSystem::Draw() {
         i++; // Only increment if we didn't erase
 
         for (auto& [name, transform] : activeAnimations) {
-            if (animations.find(name) == animations.end()) continue;
+            if (!animations.contains(name)) continue;
 
-            Animation& anim = animations[name];
+            anim = animations[name];
             if (anim.currentFrame >= anim.frames.size()) continue;
         }
     }

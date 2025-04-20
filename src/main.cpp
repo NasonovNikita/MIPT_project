@@ -118,12 +118,11 @@ int main() {
     SetTargetFPS(60);
 
 
-    // �������� �������� � ������� ��������
-
-    std::string project_root_str(PROJECT_ROOT_PATH); // ��������� ���� ������� (�������� � CMake ������������ ������������)
-    std::string explosionSheet_str("/assets/textures/explosion.png"); //���� �� �������� 
+    std::string project_root_str(PROJECT_ROOT_PATH);
+    std::string explosionSheet_str("/assets/textures/explosion.png");
     std::string full_path_str = project_root_str + explosionSheet_str;
-    core::animation::AnimationSystem::Load("explosion", full_path_str.c_str(), {5, 5}, 0.04f, false);
+    core::animation::AnimationSystem::Load("explosion", full_path_str.c_str(),
+                                           {5, 5}, 0.04f, false);
 
 
     // Initialize camera
@@ -182,8 +181,10 @@ int main() {
             drawnObj->draw();
         }
 
+        // debugDrawColliders();
 
-        core::animation::AnimationSystem::Draw(); 
+
+        core::animation::AnimationSystem::Draw();
 
         DrawText(TextFormat("Animations: %d",
             core::animation::AnimationSystem::GetActiveCount()), 10, 40, 20, RED);

@@ -9,7 +9,6 @@
 
 namespace core::animation {
     class AnimationSystem {
-    private:
         struct Animation {
             std::vector<Texture2D> frames;
             float frameDuration;
@@ -27,7 +26,7 @@ namespace core::animation {
         // Load animation from sprite sheet
         static void Load(const std::string& name,
             const char* spriteSheetPath,
-            std::pair<int, int> framesCount,
+            const std::pair<int, int> &framesCount,
             float frameDuration,
             bool looping = true);
 
