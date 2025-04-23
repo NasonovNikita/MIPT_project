@@ -9,6 +9,7 @@
 
 namespace game::game_objects {
     void Unit::die() {
+        dead_ = true;
         setActive(false);
     }
 
