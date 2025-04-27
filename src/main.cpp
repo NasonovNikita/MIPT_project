@@ -5,6 +5,7 @@
 #include "game/gameObjectManager.h"
 #include "game/entities/player.h"
 #include "game/entities/units.h"
+#include "game/worldMap.h"
 #include "core/cameraSystem.h"
 #include "core/animation.h"
 #include "game/levelManager.h"
@@ -13,7 +14,9 @@ constexpr int screenWidth = 1040;
 constexpr int screenHeight = 1040;
 constexpr float deltaTimePhys = 0.002f;
 
-using game::game_objects::Asteroid;
+const float WORLD_MAP_RADIUS = 1500.f;
+const Vector2 CENTER_OF_WORLD = { screenWidth / 2.0f, screenHeight / 2.0f };
+
 using core::object_pool::ObjectPool;
 using game::game_objects::GameObject;
 
@@ -53,22 +56,25 @@ int main() {
     SetTargetFPS(60);
 
 
-    const std::string project_root_str(PROJECT_ROOT_PATH);
-    const std::string explosionSheet_str("/assets/textures/explosion.png");
-    const std::string full_path_str = project_root_str + explosionSheet_str;
-    core::animation::AnimationSystem::Load("explosion", full_path_str.c_str(),
-                                           {5, 5}, 0.04f, false);
+    // �������� �������� � ������� ��������
+
+    std::string project_root_str(PROJECT_ROOT_PATH); // ��������� ���� ������� (�������� � CMake ������������ ������������)
+    std::string explosionSheet_str = project_root_str + "/assets/textures/explosion.png"; //���� �� ��������
+    core::animation::AnimationSystem::Load("explosion", explosionSheet_str.c_str(), {5, 5}, 0.04f, false);
+
+    //������������� �������� ����
+    game::world::WorldMap worldMap(WORLD_MAP_RADIUS, CENTER_OF_WORLD);
 
     // Initialize camera
-    gameCamera.camera.offset = { screenWidth / 2.0f, screenHeight / 2.0f };
+    gameCamera.camera.offset = CENTER_OF_WORLD;
     gameCamera.smoothSpeed = 5.0f;
-    gameCamera.zoom = 1.0f;
+    gameCamera.zoom = 0.5f;
 
     float DT = 0;
 
 
     objectManager.createObject<game::management::LevelManager>();
-    
+
     while (!WindowShouldClose()) {
         const float frameTime = GetFrameTime(); // Store frame time for camera smoothing
 
@@ -80,6 +86,8 @@ int main() {
             updatePhysics();
             DT -= deltaTimePhys;
         }
+
+        worldMap.Update();
 
         // Logic
         for (const auto& gameObject : game::management::GameObjectManager::getAllObjects()) {
@@ -100,6 +108,7 @@ int main() {
 
         // Begin camera mode
         core::systems::CameraSystem::BeginCameraDraw(gameCamera);
+        worldMap.Draw();
 
         for (auto* drawnObj : objectManager.getDrawnObjects()) {
             if (!drawnObj->isActive()) continue;
@@ -109,8 +118,9 @@ int main() {
 
         core::animation::AnimationSystem::Draw();
 
-        // DrawText(TextFormat("Animations: %d",
-        //     core::animation::AnimationSystem::GetActiveCount()), 10, 40, 20, RED);
+
+        DrawText(TextFormat("Animations: %d",
+            core::animation::AnimationSystem::GetActiveCount()), 10, 40, 20, RED);
 
         core::systems::CameraSystem::EndCameraDraw();
 
