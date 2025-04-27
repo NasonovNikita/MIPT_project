@@ -12,6 +12,7 @@ add_executable(game
         src/game/entities/units.cpp
         src/game/gameObjects.cpp
         src/game/stats.cpp
+        src/game/worldMap.cpp
         src/components.cpp
         src/main.cpp)
 include_directories(include)

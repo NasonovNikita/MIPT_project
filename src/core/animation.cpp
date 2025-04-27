@@ -1,5 +1,7 @@
 #include "core/animation.h"
 
+#include <algorithm>
+
 
 namespace core::animation {
     std::unordered_map<std::string, AnimationSystem::Animation> AnimationSystem::animations;
@@ -39,7 +41,7 @@ namespace core::animation {
     }
 
     void AnimationSystem::Play(const std::string& name, components::Transform2D transform) {
-        if (animations.find(name) != animations.end()) {
+        if (animations.contains(name)) {
             animations[name].currentFrame = 0;
             animations[name].frameTime = 0;
             activeAnimations.emplace_back(name, transform);
@@ -47,7 +49,7 @@ namespace core::animation {
     }
 
     void AnimationSystem::SetFlip(const std::string& name, bool flipX, bool flipY) {
-        if (animations.find(name) != animations.end()) {
+        if (animations.contains(name)) {
             animations[name].flipX = flipX;
             animations[name].flipY = flipY;
         }
@@ -70,13 +72,11 @@ namespace core::animation {
                     }
                     else {
                         // Remove non-looping animations that finished
-                        activeAnimations.erase(
-                            std::remove_if(activeAnimations.begin(), activeAnimations.end(),
-                                [&](const auto& item) {
-                                    return item.first == name;
-                                }),
-                            activeAnimations.end());
-                        anim.currentFrame = (int)anim.frames.size() - 1;
+                        std::erase_if(activeAnimations,
+                                      [&](const auto& item) {
+                                          return item.first == name;
+                                      });
+                        anim.currentFrame = static_cast<int>(anim.frames.size()) - 1;
                     }
                 }
             }
@@ -88,7 +88,7 @@ void AnimationSystem::Draw() {
     for (size_t i = 0; i < activeAnimations.size(); ) {
         auto& [name, transform] = activeAnimations[i];
         
-        if (animations.find(name) == animations.end()) {
+        if (!animations.contains(name)) {
             activeAnimations.erase(activeAnimations.begin() + i);
             continue;
         }
@@ -121,7 +121,7 @@ void AnimationSystem::Draw() {
         i++; // Only increment if we didn't erase
 
         for (auto& [name, transform] : activeAnimations) {
-            if (animations.find(name) == animations.end()) continue;
+            if (!animations.contains(name)) continue;
 
             Animation& anim = animations[name];
             if (anim.currentFrame >= anim.frames.size()) continue;
@@ -130,13 +130,13 @@ void AnimationSystem::Draw() {
 }
 
     bool AnimationSystem::IsPlaying(const std::string& name) {
-        return std::find_if(activeAnimations.begin(), activeAnimations.end(),
-            [&](const auto& item) { return item.first == name; }) != activeAnimations.end();
+        return std::ranges::find_if(activeAnimations,
+                                    [&](const auto& item) { return item.first == name; }) != activeAnimations.end();
     }
 
     void AnimationSystem::UnloadAll() {
         for (auto& [name, anim] : animations) {
-            for (auto& frame : anim.frames) {
+            for (const auto& frame : anim.frames) {
                 UnloadTexture(frame);
             }
         }

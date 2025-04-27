@@ -13,7 +13,7 @@ namespace game::world {
     public:
         WorldMap(float radius, Vector2 center = { 0, 0 });
 
-        void Update();
+        void Update() const;
         void Draw() const;
 
         // Check if position is outside world bounds
