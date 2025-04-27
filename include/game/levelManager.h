@@ -98,7 +98,7 @@ namespace game::management {
 
         void start() override {
             // Player (singleton pattern remains)
-            game::game_objects::Player::SpawnPlayer(
+            game_objects::Player::SpawnPlayer(
 
                 components::Transform2D(100, 400, 50, 50), 10, 300, 3);
             manager.registerExternalObject(game::game_objects::Player::GetInstance());

@@ -77,7 +77,7 @@ namespace game::management {
             // Phase 1: Mark inactive objects
             std::vector<game_objects::GameObject*> toRemove;
             for (auto& obj : ownedObjects_) {
-                if (!obj->isToDestroy()) {
+                if (obj->isToDestroy()) {
                     toRemove.push_back(obj.get());
                 }
             }
@@ -97,7 +97,7 @@ namespace game::management {
 
             // Phase 3: Finally erase owned objects (will auto-remove from s_allObjects via destructor)
             std::erase_if(ownedObjects_,
-                          [&](const auto& obj) { return !obj->isActive(); });
+                          [&](const auto& obj) { return obj->isToDestroy(); });
         }
 
         // Prevent copying

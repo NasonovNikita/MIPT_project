@@ -5,6 +5,8 @@
 #include "game//gameObjects.h"
 #include "game/entities/units.h"
 
+#include <iostream>
+
 #include "game/entities/player.h"
 
 namespace game::game_objects {
