@@ -41,7 +41,7 @@ namespace core::animation {
     }
 
     void AnimationSystem::Play(const std::string& name, components::Transform2D transform) {
-        if (animations.contains(name)) {
+        if (animations.find(name) != animations.end()) {
             animations[name].currentFrame = 0;
             animations[name].frameTime = 0;
             activeAnimations.emplace_back(name, transform);
@@ -49,7 +49,7 @@ namespace core::animation {
     }
 
     void AnimationSystem::SetFlip(const std::string& name, bool flipX, bool flipY) {
-        if (animations.contains(name)) {
+        if (animations.find(name) != animations.end()) {
             animations[name].flipX = flipX;
             animations[name].flipY = flipY;
         }
@@ -76,7 +76,7 @@ namespace core::animation {
                                       [&](const auto& item) {
                                           return item.first == name;
                                       });
-                        anim.currentFrame = static_cast<int>(anim.frames.size()) - 1;
+                        anim.currentFrame = (int)anim.frames.size() - 1;
                     }
                 }
             }
@@ -130,13 +130,13 @@ void AnimationSystem::Draw() {
 }
 
     bool AnimationSystem::IsPlaying(const std::string& name) {
-        return std::ranges::find_if(activeAnimations,
-                                    [&](const auto& item) { return item.first == name; }) != activeAnimations.end();
+        return std::find_if(activeAnimations.begin(), activeAnimations.end(),
+            [&](const auto& item) { return item.first == name; }) != activeAnimations.end();
     }
 
     void AnimationSystem::UnloadAll() {
         for (auto& [name, anim] : animations) {
-            for (const auto& frame : anim.frames) {
+            for (auto& frame : anim.frames) {
                 UnloadTexture(frame);
             }
         }

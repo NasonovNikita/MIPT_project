@@ -28,6 +28,7 @@ constexpr float c_damageInvincibilityTime = 1.5;
 constexpr float c_damageImpulse = 0.5;
 
 namespace game::game_objects {
+
     std::vector<Vector2> Player::getVertices() const {
         return {
             transform_.center + verticesOffsets[0],
@@ -183,7 +184,7 @@ namespace game::game_objects {
         // hp_.ChangeValue(-value);
         Unit::takeDamage(value);
 
-        if (isDead()) {
+        if (!isActive()) {
             // Create explosion transform at player position
             components::Transform2D explosionTransform = getTransform();
             explosionTransform.size *= 3; // Larger size for visibility

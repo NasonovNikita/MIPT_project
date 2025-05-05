@@ -4,8 +4,6 @@
 
 #ifndef BULLET_H
 #define BULLET_H
-#include <iostream>
-
 #include "../gameObjects.h"
 
 #include "units.h"

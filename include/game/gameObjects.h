@@ -18,7 +18,6 @@ namespace game::game_objects {
     protected:
         int id_;
         components::Transform2D transform_;
-        bool toDestroy_ = false;
         bool isActive_ = true;
 
         GameObject *parent_ = nullptr;
@@ -32,17 +31,12 @@ namespace game::game_objects {
         virtual ~GameObject();
 
         [[nodiscard]] bool isActive() const { return isActive_; }
-        [[nodiscard]] bool isToDestroy() const { return toDestroy_; }
 
         [[nodiscard]] GameObject *getParent() const { return parent_; }
 
         [[nodiscard]] components::Transform2D& getTransform() { return transform_; }
 
         void setActive(const bool active) { isActive_ = active; }
-        void destroy() {
-            setActive(false);
-            toDestroy_ = true;
-        }
 
         void setParent(GameObject *parent) { parent_ = parent; }
 
