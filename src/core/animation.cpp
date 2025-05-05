@@ -41,7 +41,7 @@ namespace core::animation {
     }
 
     void AnimationSystem::Play(const std::string& name, components::Transform2D transform) {
-        if (animations.contains(name)) {
+        if (animations.find(name) != animations.end()) {
             animations[name].currentFrame = 0;
             animations[name].frameTime = 0;
             activeAnimations.emplace_back(name, transform);
@@ -49,7 +49,7 @@ namespace core::animation {
     }
 
     void AnimationSystem::SetFlip(const std::string& name, bool flipX, bool flipY) {
-        if (animations.contains(name)) {
+        if (animations.find(name) != animations.end()) {
             animations[name].flipX = flipX;
             animations[name].flipY = flipY;
         }
@@ -76,14 +76,15 @@ namespace core::animation {
                                       [&](const auto& item) {
                                           return item.first == name;
                                       });
-                        anim.currentFrame = static_cast<int>(anim.frames.size()) - 1;
+                        anim.currentFrame = (int)anim.frames.size() - 1;
                     }
                 }
             }
         }
     }
 
-void AnimationSystem::Draw() {
+
+    void AnimationSystem::Draw() {
     // Use indices for safe removal
     for (size_t i = 0; i < activeAnimations.size(); ) {
         auto& [name, transform] = activeAnimations[i];
@@ -130,17 +131,29 @@ void AnimationSystem::Draw() {
 }
 
     bool AnimationSystem::IsPlaying(const std::string& name) {
-        return std::ranges::find_if(activeAnimations,
-                                    [&](const auto& item) { return item.first == name; }) != activeAnimations.end();
+        return std::find_if(activeAnimations.begin(), activeAnimations.end(),
+            [&](const auto& item) { return item.first == name; }) != activeAnimations.end();
+    }
+
+    void AnimationSystem::LoadAll() {
+        std::string project_root_str(PROJECT_ROOT_PATH);
+        std::string playerExplosionSheet_str = project_root_str + "/assets/textures/explosion.png";
+        std::string asteroidExplosionSheet_str = project_root_str + "/assets/textures/asteroid-explosion-spritesheet.png";
+        core::animation::AnimationSystem::Load("playerExplosion", playerExplosionSheet_str.c_str(),
+            { 5, 5 }, 0.04f, false);
+        core::animation::AnimationSystem::Load("asteroidExplosion", asteroidExplosionSheet_str.c_str(),
+            { 4, 3 }, 0.02f, false);
     }
 
     void AnimationSystem::UnloadAll() {
         for (auto& [name, anim] : animations) {
-            for (const auto& frame : anim.frames) {
+            for (auto& frame : anim.frames) {
                 UnloadTexture(frame);
             }
         }
         animations.clear();
         activeAnimations.clear();
     }
+
+    
 }

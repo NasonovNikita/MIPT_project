@@ -28,6 +28,7 @@ constexpr float c_damageInvincibilityTime = 1.5;
 constexpr float c_damageImpulse = 0.5;
 
 namespace game::game_objects {
+
     std::vector<Vector2> Player::getVertices() const {
         return {
             transform_.center + verticesOffsets[0],
@@ -183,13 +184,13 @@ namespace game::game_objects {
         // hp_.ChangeValue(-value);
         Unit::takeDamage(value);
 
-        if (isDead()) {
+        if (!isActive()) {
             // Create explosion transform at player position
             components::Transform2D explosionTransform = getTransform();
             explosionTransform.size *= 3; // Larger size for visibility
 
             // Play explosion animation
-            core::animation::AnimationSystem::Play("explosion", explosionTransform);
+            core::animation::AnimationSystem::Play("playerExplosion", explosionTransform);
         }
         dashInvincibilityTime_ = c_damageInvincibilityTime;
     }
@@ -218,15 +219,34 @@ namespace game::game_objects {
     void Player::draw()  {
         const auto vertices = getVertices();
 
-        if (!isInvincible())
-            DrawTriangle(vertices[1], vertices[0], vertices[2], GREEN);
-        else if (isDashing())
-            DrawTriangle(vertices[1], vertices[0], vertices[2], BLUE);
-        else if (dashInvincibilityTime_ > 0)
-            DrawTriangle(vertices[1], vertices[0], vertices[2], RED);
+        if (texture) {
+            texture->Draw(getTransform(), Player::angle_ / acosf(-1) * 180);
+            if (!isInvincible()) {
+                texture->SetTint(GREEN);
+                //DrawTriangle(vertices[1], vertices[0], vertices[2], GREEN);
+            }
+            else if (isDashing()) {
+                texture->SetTint(BLUE);
+                //DrawTriangle(vertices[1], vertices[0], vertices[2], BLUE);
+            }
+            else if (dashInvincibilityTime_ > 0) {
+                texture->SetTint(RED);
+                //DrawTriangle(vertices[1], vertices[0], vertices[2], RED);
+            }
+        }
+        
 
-        DrawTriangleLines(vertices[1], vertices[0], vertices[2], BLUE);
+        //if (!isInvincible())
+        //    DrawTriangle(vertices[1], vertices[0], vertices[2], GREEN);
+        //else if (isDashing())
+        //    DrawTriangle(vertices[1], vertices[0], vertices[2], BLUE);
+        //else if (dashInvincibilityTime_ > 0)
+        //    DrawTriangle(vertices[1], vertices[0], vertices[2], RED);
+
+        //DrawTriangleLines(vertices[1], vertices[0], vertices[2], BLUE);
     }
 
-
+    void Player::LoadTexture(const char* path) {
+        texture = std::make_unique<components::TextureComponent>(path);
+    }
 }

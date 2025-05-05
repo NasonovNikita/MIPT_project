@@ -10,6 +10,7 @@
 #include "components.h"
 #include "units.h"
 #include "game/gameObjects.h"
+#include <memory>
 
 namespace game::game_objects {
     class Player final : public Unit {
@@ -21,6 +22,7 @@ namespace game::game_objects {
 
         std::vector<Vector2> verticesOffsets = { Vector2 (0, 0), Vector2 (0, 0), Vector2 (0, 0)};
         static Player *s_instance;
+        std::unique_ptr<components::TextureComponent> texture;
 
         float shootTimeOut = 0;
         float dashTimeOut = 0;
@@ -74,6 +76,8 @@ namespace game::game_objects {
         void dash(Vector2 direction, float speed);
 
         void onCollided(CollidingObject *other) override;
+
+        void LoadTexture(const char* path); 
     };
 }
 

@@ -157,6 +157,23 @@ namespace components {
             camera.zoom = zoom;
         }
     };
+
+    class TextureComponent {
+    private:
+        Texture2D texture;
+        Color tint;
+        Rectangle sourceRect;
+
+    public:
+        TextureComponent(const char* path, Color tint = WHITE);
+        ~TextureComponent();
+
+
+        Texture2D getTexture() const;
+        void Draw(const Transform2D& transform) const;
+        void Draw(const Transform2D& transform, float angle ) const;
+        void SetTint(Color newTint) { tint = newTint; }
+    };
 }
 
 #endif //COMPONENTS_H

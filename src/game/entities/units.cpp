@@ -4,14 +4,11 @@
 
 #include "game//gameObjects.h"
 #include "game/entities/units.h"
-
-#include <iostream>
-
+#include "core/animation.h"
 #include "game/entities/player.h"
 
 namespace game::game_objects {
     void Unit::die() {
-        dead_ = true;
         setActive(false);
     }
 
@@ -20,6 +17,20 @@ namespace game::game_objects {
 
         if (hp_.getValue() == 0) {
             die();
+        }
+    }
+
+    void Asteroid::takeDamage(const int value) {
+        // hp_.ChangeValue(-value);
+        Unit::takeDamage(value);
+
+        if(!isActive()) {
+            // Create explosion transform at player position
+            components::Transform2D explosionTransform = getTransform();
+            explosionTransform.size *= 3; // Larger size for visibility
+
+            // Play explosion animation
+            core::animation::AnimationSystem::Play("asteroidExplosion", explosionTransform);
         }
     }
 

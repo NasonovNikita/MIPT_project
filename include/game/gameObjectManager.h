@@ -41,10 +41,9 @@ namespace game::management {
             static_assert(std::is_base_of_v<game_objects::GameObject, T>,
                           "T must inherit from GameObject");
 
-            std::shared_ptr<T> obj = std::make_shared<T>(std::forward<Args>(args)...);
+            auto obj = std::make_shared<T>(std::forward<Args>(args)...);
             registerInterfaces(obj.get());
             ownedObjects_.push_back(obj);
-            obj.get()->start();
             return obj;
         }
 
@@ -73,11 +72,11 @@ namespace game::management {
             collidingObjects_.clear();
         }
 
-        void destroyObjectsToDestroy() {
+        void destroyInactive() {
             // Phase 1: Mark inactive objects
             std::vector<game_objects::GameObject*> toRemove;
             for (auto& obj : ownedObjects_) {
-                if (obj->isToDestroy()) {
+                if (!obj->isActive()) {
                     toRemove.push_back(obj.get());
                 }
             }
@@ -97,7 +96,7 @@ namespace game::management {
 
             // Phase 3: Finally erase owned objects (will auto-remove from s_allObjects via destructor)
             std::erase_if(ownedObjects_,
-                          [&](const auto& obj) { return obj->isToDestroy(); });
+                          [&](const auto& obj) { return !obj->isActive(); });
         }
 
         // Prevent copying

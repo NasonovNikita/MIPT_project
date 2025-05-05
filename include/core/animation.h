@@ -42,8 +42,12 @@ namespace core::animation {
         // Draw all animations
         static void Draw();
 
+        static void LoadAll();
+
         // Cleanup resources
         static void UnloadAll();
+
+
 
         // Check if animation is playing
         static bool IsPlaying(const std::string& name);

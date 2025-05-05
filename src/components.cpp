@@ -327,6 +327,43 @@ namespace components {
     }
 #pragma endregion
 
+    TextureComponent::TextureComponent(const char* path, Color tint) :
+        tint(tint) {
+        texture = LoadTexture(path);
+        sourceRect = { 0, 0, (float)texture.width, (float)texture.height };
+    }
+
+    TextureComponent::~TextureComponent() {
+        UnloadTexture(texture);
+    }
+
+    void TextureComponent::Draw(const Transform2D& transform) const {
+        Rectangle dest = {
+            transform.center.x,
+            transform.center.y,
+            transform.scaledSize().x,
+            transform.scaledSize().y
+        };
+        Vector2 origin = { transform.scaledSize().x / 2, transform.scaledSize().y / 2 };
+        DrawTexturePro(texture, sourceRect, dest, origin, transform.angle, tint);
+    }
+
+    void TextureComponent::Draw(const Transform2D& transform, float angle) const {
+        Rectangle dest = {
+            transform.center.x,
+            transform.center.y,
+            transform.scaledSize().x,
+            transform.scaledSize().y
+        };
+        Vector2 origin = { transform.scaledSize().x / 2, transform.scaledSize().y / 2 };
+        DrawTexturePro(texture, sourceRect, dest, origin, angle + 90, tint);
+    }
+
+
+    Texture2D TextureComponent::getTexture() const {
+        return texture;
+    }
+
 
 
 }
