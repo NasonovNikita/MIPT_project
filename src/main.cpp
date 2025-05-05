@@ -27,7 +27,7 @@ components::GameCamera gameCamera;
 // Textures
 std::string project_root_str(PROJECT_ROOT_PATH);
 std::string playerTexture = project_root_str + "/assets/textures/spaceship.png";
-std::string background = project_root_str + "/assets/textures/background2.png";
+std::string background = project_root_str + "/assets/textures/background3.png";
 
 
 
