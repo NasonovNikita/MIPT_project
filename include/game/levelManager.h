@@ -15,7 +15,7 @@
 
 constexpr int SCREEN_WIDTH = 1040;
 constexpr int SCREEN_HEIGHT = 1040;
-constexpr float WORLD_RADIUS = 700.f;
+constexpr float WORLD_RADIUS = 1000.f;
 constexpr Vector2 WORLD_CENTER = {SCREEN_WIDTH / 2.f, SCREEN_HEIGHT / 2.f};
 
 namespace game::game_objects {
