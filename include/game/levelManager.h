@@ -74,6 +74,7 @@ namespace game::management {
                 );
                 const float speedAngle = GetRandomValue(0, 360) * DEG2RAD;
                 newAst->setDirectionOfSpeed(Vector2Rotate(Vector2One(), speedAngle));
+                newAst->LoadTexture(textures::asteroidTexture.c_str());
 
                 asteroids.push_back(newAst);
             }

@@ -133,7 +133,7 @@ void AnimationSystem::Draw() {
         Load("playerExplosion", textures::playerExplosionSheet_str.c_str(),
             { 5, 5 }, 0.04f, false);
         Load("asteroidExplosion", textures::asteroidExplosionSheet_str.c_str(),
-            { 4, 3 }, 0.02f, false);
+            { 3, 3 }, 0.04f, false);
     }
 
     void AnimationSystem::UnloadAll() {
