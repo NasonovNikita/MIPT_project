@@ -9,6 +9,7 @@
 namespace game::game_objects {
     class Unit : public CollidingObject, public DrawnGameObject, public MovingObject {
         stats::Stat hp_{ 0 };
+        bool dead_ = false;
 
     protected:
         void die();
@@ -17,6 +18,8 @@ namespace game::game_objects {
         MovingObject(maxSpeed), hp_(hp) {}
 
         [[nodiscard]] bool virtual isEnemy() = 0;
+
+        [[nodiscard]] bool isDead() const { return dead_; };
 
         void virtual takeDamage(int value);
 

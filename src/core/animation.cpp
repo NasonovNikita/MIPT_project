@@ -41,7 +41,7 @@ namespace core::animation {
     }
 
     void AnimationSystem::Play(const std::string& name, components::Transform2D transform) {
-        if (animations.find(name) != animations.end()) {
+        if (animations.contains(name)) {
             animations[name].currentFrame = 0;
             animations[name].frameTime = 0;
             activeAnimations.emplace_back(name, transform);
@@ -49,7 +49,7 @@ namespace core::animation {
     }
 
     void AnimationSystem::SetFlip(const std::string& name, bool flipX, bool flipY) {
-        if (animations.find(name) != animations.end()) {
+        if (animations.contains(name)) {
             animations[name].flipX = flipX;
             animations[name].flipY = flipY;
         }
@@ -76,19 +76,18 @@ namespace core::animation {
                                       [&](const auto& item) {
                                           return item.first == name;
                                       });
-                        anim.currentFrame = (int)anim.frames.size() - 1;
+                        anim.currentFrame = static_cast<int>(anim.frames.size()) - 1;
                     }
                 }
             }
         }
     }
 
-
-    void AnimationSystem::Draw() {
+void AnimationSystem::Draw() {
     // Use indices for safe removal
     for (size_t i = 0; i < activeAnimations.size(); ) {
         auto& [name, transform] = activeAnimations[i];
-        
+
         if (!animations.contains(name)) {
             activeAnimations.erase(activeAnimations.begin() + i);
             continue;
@@ -131,8 +130,8 @@ namespace core::animation {
 }
 
     bool AnimationSystem::IsPlaying(const std::string& name) {
-        return std::find_if(activeAnimations.begin(), activeAnimations.end(),
-            [&](const auto& item) { return item.first == name; }) != activeAnimations.end();
+        return std::ranges::find_if(activeAnimations,
+                                    [&](const auto& item) { return item.first == name; }) != activeAnimations.end();
     }
 
     void AnimationSystem::LoadAll() {
@@ -147,13 +146,11 @@ namespace core::animation {
 
     void AnimationSystem::UnloadAll() {
         for (auto& [name, anim] : animations) {
-            for (auto& frame : anim.frames) {
+            for (const auto& frame : anim.frames) {
                 UnloadTexture(frame);
             }
         }
         animations.clear();
         activeAnimations.clear();
     }
-
-    
 }

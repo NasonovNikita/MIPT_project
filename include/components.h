@@ -32,6 +32,10 @@ namespace components {
         }
     };
 
+    inline Transform2D Transform2DZero() {
+        return {0, 0, 0, 0};
+    }
+
 
     struct Collider {
         friend Vector2 EPA(Collider &colliderA, Collider &colliderB,

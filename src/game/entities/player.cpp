@@ -18,6 +18,7 @@
 constexpr int c_acceleration = 500;
 constexpr int c_rotation = 10;
 
+constexpr float c_shootTimeOut = 0.5;
 constexpr float c_dashTimeOut = 4;
 constexpr float c_dashTime = 0.5;
 constexpr float c_dashInvincibilityTime = 0.5;
@@ -28,7 +29,6 @@ constexpr float c_damageInvincibilityTime = 1.5;
 constexpr float c_damageImpulse = 0.5;
 
 namespace game::game_objects {
-
     std::vector<Vector2> Player::getVertices() const {
         return {
             transform_.center + verticesOffsets[0],
@@ -123,7 +123,7 @@ namespace game::game_objects {
         if (canShoot() and (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) or IsKeyDown(KEY_J))) {
             management::GameObjectManager::getInstance().createObject<Bullet>(
         components::Transform2D(getVertices()[2].x, getVertices()[2].y, 10, 10), 300, angle_);
-            shootTimeOut = 0.2;
+            shootTimeOut = c_shootTimeOut;
         }
 
         // Dash
@@ -184,7 +184,7 @@ namespace game::game_objects {
         // hp_.ChangeValue(-value);
         Unit::takeDamage(value);
 
-        if (!isActive()) {
+        if (isDead()) {
             // Create explosion transform at player position
             components::Transform2D explosionTransform = getTransform();
             explosionTransform.size *= 3; // Larger size for visibility
