@@ -1,6 +1,6 @@
 #include "core/animation.h"
-
 #include <algorithm>
+#include "texturePaths.h"
 
 
 namespace core::animation {
@@ -12,6 +12,7 @@ namespace core::animation {
         const std::pair<int, int> &framesCount,
         const float frameDuration,
         const bool looping) {
+
         const Texture2D spriteSheet = LoadTexture(spriteSheetPath);
 
         const int frameWidth = spriteSheet.width / framesCount.second;
@@ -48,14 +49,14 @@ namespace core::animation {
         }
     }
 
-    void AnimationSystem::SetFlip(const std::string& name, bool flipX, bool flipY) {
+    void AnimationSystem::SetFlip(const std::string& name, const bool flipX, const bool flipY) {
         if (animations.contains(name)) {
             animations[name].flipX = flipX;
             animations[name].flipY = flipY;
         }
     }
 
-    void AnimationSystem::Update(float deltaTime) {
+    void AnimationSystem::Update(const float deltaTime) {
         // Update animation frames
         for (auto& [name, anim] : animations) {
             if (anim.frames.empty()) continue;
@@ -63,8 +64,9 @@ namespace core::animation {
             anim.frameTime += deltaTime;
 
             if (anim.frameTime >= anim.frameDuration) {
-                anim.frameTime = 0;
-                anim.currentFrame++;
+                const int frames = static_cast<int>(anim.frameTime / anim.frameDuration);
+                anim.currentFrame += frames;
+                anim.frameTime -= anim.frameDuration * frames;
 
                 if (anim.currentFrame >= anim.frames.size()) {
                     if (anim.looping) {
@@ -100,8 +102,8 @@ void AnimationSystem::Draw() {
         }
 
         const Texture2D frame = anim.frames[anim.currentFrame];
-        const Vector2 position = transform.center;
-        const Vector2 size = transform.scaledSize();
+        const auto [x, y] = transform.center;
+        const auto [width, height] = transform.scaledSize();
         const float rotation = transform.angle;
 
         const Rectangle source = {
@@ -111,21 +113,14 @@ void AnimationSystem::Draw() {
         };
 
         const Rectangle dest = {
-            position.x, position.y,
-            size.x, size.y
+            x, y,
+            width, height
         };
 
-        Vector2 origin = { size.x / 2, size.y / 2 };
+        Vector2 origin = { width / 2, height / 2 };
 
         DrawTexturePro(frame, source, dest, origin, rotation, WHITE);
         i++; // Only increment if we didn't erase
-
-        for (auto& [name, transform] : activeAnimations) {
-            if (!animations.contains(name)) continue;
-
-            anim = animations[name];
-            if (anim.currentFrame >= anim.frames.size()) continue;
-        }
     }
 }
 
@@ -135,12 +130,9 @@ void AnimationSystem::Draw() {
     }
 
     void AnimationSystem::LoadAll() {
-        std::string project_root_str(PROJECT_ROOT_PATH);
-        std::string playerExplosionSheet_str = project_root_str + "/assets/textures/explosion.png";
-        std::string asteroidExplosionSheet_str = project_root_str + "/assets/textures/asteroid-explosion-spritesheet.png";
-        core::animation::AnimationSystem::Load("playerExplosion", playerExplosionSheet_str.c_str(),
+        Load("playerExplosion", textures::playerExplosionSheet_str.c_str(),
             { 5, 5 }, 0.04f, false);
-        core::animation::AnimationSystem::Load("asteroidExplosion", asteroidExplosionSheet_str.c_str(),
+        Load("asteroidExplosion", textures::asteroidExplosionSheet_str.c_str(),
             { 4, 3 }, 0.02f, false);
     }
 
