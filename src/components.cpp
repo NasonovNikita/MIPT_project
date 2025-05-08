@@ -170,7 +170,9 @@ namespace components {
     Vector2 Collider::getCollisionNormal(Collider &other) {
         // Run GJK to get the initial simplex
         std::vector<Vector2> simplex;
-        checkCollision(other, simplex);
+        if (!checkCollision(other, simplex)) {
+            return {0, 0}; // No collision
+        }
 
         // Run EPA to find the collision normal
         return EPA(*this, other, simplex);
@@ -359,11 +361,7 @@ namespace components {
         DrawTexturePro(texture, sourceRect, dest, origin, angle + 90, tint);
     }
 
-
     Texture2D TextureComponent::getTexture() const {
         return texture;
     }
-
-
-
 }

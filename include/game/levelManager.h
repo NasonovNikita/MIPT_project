@@ -45,7 +45,7 @@ namespace game::management {
                 // Keep generating positions until we find one that's far enough from player
                 while (!validPosition) {
                     const float spawnAngle = GetRandomValue(0, 360) * DEG2RAD;
-                    const float distance = GetRandomValue(0, WORLD_RADIUS);
+                    const float distance = GetRandomValue(0, WORLD_RADIUS * 0.9f);
                     pos = {
                     WORLD_CENTER.x + cosf(spawnAngle) * distance,
                     WORLD_CENTER.y + sinf(spawnAngle) * distance
