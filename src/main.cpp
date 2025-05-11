@@ -10,7 +10,7 @@
 
 constexpr int screenWidth = 1040;
 constexpr int screenHeight = 1040;
-constexpr float deltaTimePhys = 0.002f;
+constexpr float deltaTimePhys = 1.f / 60 / 2;
 constexpr Vector2 center = {screenWidth / 2.0f, screenHeight / 2.0f};
 
 using core::object_pool::ObjectPool;
