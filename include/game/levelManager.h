@@ -15,7 +15,7 @@
 
 constexpr int SCREEN_WIDTH = 1040;
 constexpr int SCREEN_HEIGHT = 1040;
-constexpr float WORLD_RADIUS = 700.f;
+constexpr float WORLD_RADIUS = 1000.f;
 constexpr Vector2 WORLD_CENTER = {SCREEN_WIDTH / 2.f, SCREEN_HEIGHT / 2.f};
 
 namespace game::game_objects {
@@ -74,6 +74,7 @@ namespace game::management {
                 );
                 const float speedAngle = GetRandomValue(0, 360) * DEG2RAD;
                 newAst->setDirectionOfSpeed(Vector2Rotate(Vector2One(), speedAngle));
+                newAst->LoadTexture(textures::asteroidTexture.c_str());
 
                 asteroids.push_back(newAst);
             }
@@ -119,6 +120,17 @@ namespace game::management {
 
             preferredAsteroidsCount = 15;
             spawnAsteroids(preferredAsteroidsCount);
+            core::button::ButtonSystem::Load(
+                "restart",
+                textures::restartButtonTexture.c_str(),
+                {3, 1},
+                Rectangle{ player->getTransform().corner().x - 90, player->getTransform().corner().y - 40, 180, 80},
+                [this]() {
+                    // Логика рестарта игры
+                    lose();
+                    restart();
+                }
+            );
             setWorldBorders();
         }
 
@@ -167,8 +179,11 @@ namespace game::management {
 
             const auto player = game_objects::Player::GetInstance();
             if (player && player->isDead()) {
-                lose();
-                restart();
+                //core::button::ButtonSystem::setBounds((std::string)"restart", 
+                //    Rectangle{ player->getTransform().center.x, player->getTransform().center.y, 200, 50 });
+                core::button::ButtonSystem::setInvisibility((std::string)"restart", false);
+                //lose();
+                //restart();
             }
         }
 

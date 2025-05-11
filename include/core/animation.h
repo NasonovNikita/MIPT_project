@@ -8,16 +8,17 @@
 #include <string>
 
 namespace core::animation {
+    struct Animation {
+        std::vector<Texture2D> frames;
+        float frameDuration;
+        int currentFrame = 0;
+        float frameTime = 0;
+        bool looping = true;
+        bool flipX = false;
+        bool flipY = false;
+    };
+
     class AnimationSystem {
-        struct Animation {
-            std::vector<Texture2D> frames;
-            float frameDuration;
-            int currentFrame = 0;
-            float frameTime = 0;
-            bool looping = true;
-            bool flipX = false;
-            bool flipY = false;
-        };
 
         static std::unordered_map<std::string, Animation> animations;
         static std::vector<std::pair<std::string, components::Transform2D>> activeAnimations;

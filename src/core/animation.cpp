@@ -4,7 +4,7 @@
 
 
 namespace core::animation {
-    std::unordered_map<std::string, AnimationSystem::Animation> AnimationSystem::animations;
+    std::unordered_map<std::string, Animation> AnimationSystem::animations;
     std::vector<std::pair<std::string, components::Transform2D>> AnimationSystem::activeAnimations;
 
     void AnimationSystem::Load(const std::string& name,
@@ -133,7 +133,7 @@ void AnimationSystem::Draw() {
         Load("playerExplosion", textures::playerExplosionSheet_str.c_str(),
             { 5, 5 }, 0.04f, false);
         Load("asteroidExplosion", textures::asteroidExplosionSheet_str.c_str(),
-            { 4, 3 }, 0.02f, false);
+            { 3, 3 }, 0.04f, false);
     }
 
     void AnimationSystem::UnloadAll() {

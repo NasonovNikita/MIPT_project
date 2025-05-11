@@ -5,6 +5,7 @@
 #ifndef UNITS_H
 #define UNITS_H
 #include "game/stats.h"
+#include <memory>
 
 namespace game::game_objects {
     class Unit : public CollidingObject, public DrawnGameObject, public MovingObject {
@@ -33,6 +34,7 @@ namespace game::game_objects {
 
 
     class Asteroid final : public Unit {
+        std::unique_ptr<components::TextureComponent> texture;
     public:
         Asteroid(const components::Transform2D &tr, const int hp, const float maxSpeed, const float currentSpeed=-1):
         GameObject(tr), Unit(hp, maxSpeed) {
@@ -58,6 +60,7 @@ namespace game::game_objects {
         void takeDamage(int value) override;
 
         void onCollided(CollidingObject *other) override;
+        void LoadTexture(const char* path);
     };
 }
 

@@ -5,6 +5,7 @@
 #include "game/gameObjectManager.h"
 #include "game/entities/player.h"
 #include "core/cameraSystem.h"
+#include "core/buttonSystem.h"
 #include "core/animation.h"
 #include "game/levelManager.h"
 
@@ -69,6 +70,7 @@ int main() {
         const float frameTime = GetFrameTime(); // Store frame time for camera smoothing
 
         core::animation::AnimationSystem::Update(frameTime);
+        
 
         // Physics update
         DT += frameTime;
@@ -90,6 +92,8 @@ int main() {
             frameTime
         );
 
+        core::button::ButtonSystem::Update();
+
         // Rendering
         BeginDrawing();
         ClearBackground(RAYWHITE);
@@ -101,6 +105,7 @@ int main() {
             center.x, center.y, BackGround->getTexture().width,
             BackGround->getTexture().height));
 
+
         for (auto* drawnObj : objectManager.getDrawnObjects()) {
             if (!drawnObj->isActive()) continue;
 
@@ -108,6 +113,8 @@ int main() {
         }
 
         core::animation::AnimationSystem::Draw();
+        //
+        core::button::ButtonSystem::Draw(game::game_objects::Player::GetInstance()->getTransform());
 
         core::systems::CameraSystem::EndCameraDraw();
 

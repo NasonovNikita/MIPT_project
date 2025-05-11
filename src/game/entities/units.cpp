@@ -37,13 +37,15 @@ namespace game::game_objects {
 
     void Asteroid::draw() {
         if (!isActive()) return;
+       
 
-        DrawCircle(static_cast<int>(transform_.center.x),
+       /* DrawCircle(static_cast<int>(transform_.center.x),
                    static_cast<int>(transform_.center.y),
                    transform_.scaledSize().x / 2, GRAY);
         DrawCircleLines(static_cast<int>(transform_.center.x),
                    static_cast<int>(transform_.center.y),
-                   transform_.scaledSize().x / 2, BLACK);
+                   transform_.scaledSize().x / 2, BLACK);*/
+        texture->Draw(getTransform(), 0);
     }
 
     void Asteroid::onCollided(CollidingObject *other) {
@@ -55,5 +57,9 @@ namespace game::game_objects {
 
             resolveCollision(*other);
         }
+    }
+
+    void Asteroid::LoadTexture(const char* path) {
+        texture = std::make_unique<components::TextureComponent>(path);
     }
 }
