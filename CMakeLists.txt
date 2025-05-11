@@ -7,6 +7,7 @@ add_definitions (-DPROJECT_ROOT_PATH="${CMAKE_SOURCE_DIR}")
 
 add_executable(game
         src/core/cameraSystem.cpp
+        src/core/buttonSystem.cpp
         src/core/animation.cpp
         src/game/entities/player.cpp
         src/game/entities/units.cpp

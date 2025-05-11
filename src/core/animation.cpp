@@ -4,7 +4,7 @@
 
 
 namespace core::animation {
-    std::unordered_map<std::string, AnimationSystem::Animation> AnimationSystem::animations;
+    std::unordered_map<std::string, Animation> AnimationSystem::animations;
     std::vector<std::pair<std::string, components::Transform2D>> AnimationSystem::activeAnimations;
 
     void AnimationSystem::Load(const std::string& name,

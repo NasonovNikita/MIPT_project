@@ -120,6 +120,17 @@ namespace game::management {
 
             preferredAsteroidsCount = 15;
             spawnAsteroids(preferredAsteroidsCount);
+            core::button::ButtonSystem::Load(
+                "restart",
+                textures::restartButtonTexture.c_str(),
+                {3, 1},
+                Rectangle{ player->getTransform().corner().x, player->getTransform().corner().y, 200, 50},
+                [this]() {
+                    // Логика рестарта игры
+                    lose();
+                    restart();
+                }
+            );
             setWorldBorders();
         }
 
@@ -168,8 +179,11 @@ namespace game::management {
 
             const auto player = game_objects::Player::GetInstance();
             if (player && player->isDead()) {
-                lose();
-                restart();
+                //core::button::ButtonSystem::setBounds((std::string)"restart", 
+                //    Rectangle{ player->getTransform().center.x, player->getTransform().center.y, 200, 50 });
+                core::button::ButtonSystem::setInvisibility((std::string)"restart", false);
+                //lose();
+                //restart();
             }
         }
 

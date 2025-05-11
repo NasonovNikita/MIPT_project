@@ -39,12 +39,12 @@ namespace game::game_objects {
         if (!isActive()) return;
        
 
-        DrawCircle(static_cast<int>(transform_.center.x),
+       /* DrawCircle(static_cast<int>(transform_.center.x),
                    static_cast<int>(transform_.center.y),
                    transform_.scaledSize().x / 2, GRAY);
         DrawCircleLines(static_cast<int>(transform_.center.x),
                    static_cast<int>(transform_.center.y),
-                   transform_.scaledSize().x / 2, BLACK);
+                   transform_.scaledSize().x / 2, BLACK);*/
         texture->Draw(getTransform(), 0);
     }
 
