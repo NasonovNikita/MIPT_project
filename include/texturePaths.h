@@ -13,6 +13,6 @@ namespace textures {
     inline std::string playerExplosionSheet_str = project_root_str + "/assets/textures/explosion.png";
     inline std::string asteroidExplosionSheet_str = project_root_str + "/assets/textures/asteroid-explosion-spritesheetType3.png";
     inline std::string asteroidTexture = project_root_str + "/assets/textures/asteroid.png";
-    inline std::string restartButtonTexture = project_root_str + "/assets/textures/button.png";
+    inline std::string restartButtonTexture = project_root_str + "/assets/textures/button3.png";
 }
 #endif //TEXTUREPATHS_H

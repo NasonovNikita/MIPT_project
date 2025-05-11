@@ -121,7 +121,7 @@ namespace core::button {
         }
     }
 
-    void ButtonSystem::Draw() {
+    void ButtonSystem::Draw(const components::Transform2D& relative) {
         for (const auto& [name, button] : buttons) {
             if (button.is_Invisible) continue;
             const Texture2D frame = button.frames[button.btnState];
@@ -133,7 +133,7 @@ namespace core::button {
                 (float)frame.height
             };
             DrawTextureRec(frame, sourceRec,
-                { button.bounds.x, button.bounds.y }, WHITE);
+                { relative.corner().x - button.bounds.width / 2 , relative.corner().y - button.bounds.height / 2}, WHITE);
         }
     }
 

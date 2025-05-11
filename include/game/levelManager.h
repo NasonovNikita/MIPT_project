@@ -124,7 +124,7 @@ namespace game::management {
                 "restart",
                 textures::restartButtonTexture.c_str(),
                 {3, 1},
-                Rectangle{ player->getTransform().corner().x, player->getTransform().corner().y, 200, 50},
+                Rectangle{ player->getTransform().corner().x - 90, player->getTransform().corner().y - 40, 180, 80},
                 [this]() {
                     // Логика рестарта игры
                     lose();

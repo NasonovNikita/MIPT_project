@@ -113,7 +113,8 @@ int main() {
         }
 
         core::animation::AnimationSystem::Draw();
-        core::button::ButtonSystem::Draw();
+        //
+        core::button::ButtonSystem::Draw(game::game_objects::Player::GetInstance()->getTransform());
 
         core::systems::CameraSystem::EndCameraDraw();
 

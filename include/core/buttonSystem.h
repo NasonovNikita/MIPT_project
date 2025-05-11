@@ -59,7 +59,7 @@ namespace core::button {
             bool is_Invisible = true);
 
         static void Update();
-        static void Draw();
+        static void Draw(const components::Transform2D& relative);
         static void UnloadAll();
         static void setInvisibility(const std::string& name, bool is_Invisible);
         static void setBounds(const std::string& name, Rectangle bounds);
