@@ -5,7 +5,7 @@
 #include "game/gameObjectManager.h"
 #include "game/entities/player.h"
 #include "core/cameraSystem.h"
-#include "core/buttonSystem.h"
+#include "UI/buttonSystem.h"
 #include "core/animation.h"
 #include "game/levelManager.h"
 

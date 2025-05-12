@@ -1,4 +1,6 @@
-#include "core/buttonSystem.h"
+#include "UI/buttonSystem.h"
+
+#include <unordered_map>
 #include <utility>
 
 namespace core::button {
@@ -11,15 +13,15 @@ namespace core::button {
     //    onClick(std::move(other.onClick)) {
     //}
 
-    //// Реализация оператора перемещения
+    //// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     //Button& Button::operator=(Button&& other) noexcept {
     //    if (this != &other) {
-    //        // Освобождаем текущие ресурсы
+    //        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     //        for (const auto& frame : frames) {
     //            UnloadTexture(frame);
     //        }
 
-    //        // Перемещаем ресурсы
+    //        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     //        frames = std::exchange(other.frames, {});
     //        bounds = other.bounds;
     //        btnState = other.btnState;

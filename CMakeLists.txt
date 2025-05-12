@@ -15,7 +15,8 @@ add_executable(game
         src/game/worldMap.cpp
         src/UI/buttonSystem.cpp
         src/components.cpp
-        src/main.cpp)
+        src/main.cpp
+        src/game/levelManager.cpp)
 include_directories(include)
 
 add_subdirectory(libs)
