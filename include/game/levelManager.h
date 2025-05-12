@@ -96,8 +96,7 @@ namespace game::management {
             }
             asteroids.clear();
 
-            const auto player = game_objects::Player::GetInstance();
-            if (player) {
+            if (const auto player = game_objects::Player::GetInstance()) {
                 player->destroy();
             }
         }
@@ -126,7 +125,7 @@ namespace game::management {
                 {3, 1},
                 Rectangle{ player->getTransform().corner().x - 90, player->getTransform().corner().y - 40, 180, 80},
                 [this]() {
-                    // Логика рестарта игры
+                    // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
                     lose();
                     restart();
                 }
